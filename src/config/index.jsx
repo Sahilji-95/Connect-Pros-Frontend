@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const BASE_URl = "http://localhost:9090";
+export const BASE_URl = "https://connect-pros-backend.onrender.com";
 const clientServer = axios.create({
   baseURL: BASE_URl,
   withCredentials: true,
