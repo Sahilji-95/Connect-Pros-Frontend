@@ -1,0 +1,193 @@
+.container {
+  width: 100%;
+  padding: 18px 30px;
+  box-sizing: border-box;
+
+  position: relative;
+  z-index: 100;
+
+  background: #0d1117;
+}
+
+.navbar {
+  width: 100%;
+  max-width: 1400px;
+
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 14px 22px;
+
+  box-sizing: border-box;
+
+  background: rgba(22, 27, 34, 0.85);
+
+  border: 1px solid #30363d;
+  border-radius: 14px;
+
+  backdrop-filter: blur(12px);
+
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.navbar h1 {
+  margin: 0;
+
+  font-size: 24px;
+  font-weight: 700;
+
+  letter-spacing: -0.5px;
+
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #ffffff, #818cf8, #6366f1);
+
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  transition: opacity 0.2s ease;
+}
+
+.navbar h1:hover {
+  opacity: 0.8;
+}
+
+.navbar > div {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navbar p {
+  margin: 0;
+
+  color: #8b949e;
+
+  font-size: 14px;
+}
+
+.navbar p[style] {
+  color: #c9d1d9;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.navbar p[style]:hover {
+  color: #818cf8;
+
+  transform: translateY(-1px);
+}
+
+.navbarOptionContainer {
+  display: flex;
+  align-items: center;
+}
+
+.joinButton {
+  margin: 0;
+}
+
+.joinButton button {
+  padding: 10px 22px;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #ffffff;
+
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+
+  border: none;
+  border-radius: 9px;
+
+  cursor: pointer;
+
+  box-shadow: 0 5px 18px rgba(99, 102, 241, 0.25);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.joinButton button:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+}
+
+.joinButton button:active {
+  transform: translateY(0);
+}
+
+.themeToggle {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--border);
+  border-radius: 50%;
+
+  background: var(--surface);
+  color: var(--text-primary);
+
+  font-size: 18px;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.themeToggle:hover {
+  background: var(--surface-hover);
+
+  border-color: var(--primary);
+
+  transform: rotate(15deg);
+}
+
+@media (max-width: 700px) {
+  .container {
+    padding: 12px 15px;
+  }
+
+  .navbar {
+    padding: 12px 15px;
+  }
+
+  .navbar h1 {
+    font-size: 20px;
+  }
+
+  .navbar > div {
+    gap: 12px;
+  }
+
+  .navbar p {
+    font-size: 13px;
+  }
+
+  .joinButton button {
+    padding: 9px 16px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 500px) {
+  .navbar p:first-child {
+    display: none;
+  }
+
+  .navbar {
+    border-radius: 12px;
+  }
+}

@@ -1,0 +1,448 @@
+.scrollComponent {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.createPostContainer {
+  width: 100%;
+  max-width: 650px;
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 14px 16px;
+
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 14px;
+
+  box-sizing: border-box;
+}
+
+.createPostContainer img {
+  width: 45px;
+  height: 45px;
+  min-width: 45px;
+
+  object-fit: cover;
+  border-radius: 50%;
+
+  border: 2px solid #30363d;
+}
+
+.createPostContainer textarea {
+  flex: 1;
+
+  min-height: 45px;
+  max-height: 120px;
+
+  padding: 12px 14px;
+
+  resize: none;
+
+  background: #0d1117;
+  color: #f0f6fc;
+
+  border: 1px solid #30363d;
+  border-radius: 10px;
+
+  outline: none;
+
+  font-size: 15px;
+  font-family: inherit;
+
+  box-sizing: border-box;
+}
+
+.createPostContainer textarea::placeholder {
+  color: #8b949e;
+}
+
+.createPostContainer textarea:focus {
+  border-color: #58a6ff;
+}
+
+.Fab {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #6366f1;
+  color: white;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.Fab:hover {
+  background: #4f46e5;
+  transform: scale(1.05);
+}
+
+.Fab:active {
+  transform: scale(0.95);
+}
+
+.Fab svg {
+  width: 22px;
+  height: 22px;
+}
+
+.upload {
+  padding: 10px 18px;
+
+  background: #6366f1;
+  color: #ffffff;
+
+  border: none;
+  border-radius: 9px;
+
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  transition: all 0.2s ease;
+}
+
+.upload:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(99, 102, 241, 0.25);
+}
+
+.upload:active {
+  transform: translateY(0);
+}
+
+.postContainer {
+  width: 100%;
+  max-width: 650px;
+  margin: 20px auto 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.singleCard {
+  width: 100%;
+
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 14px;
+
+  padding: 16px;
+  box-sizing: border-box;
+
+  transition: border-color 0.2s ease;
+}
+
+.singleCard:hover {
+  border-color: #484f58;
+}
+
+.singleCardProfile {
+  width: 100%;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.userProfile {
+  width: 45px;
+  height: 45px;
+  min-width: 45px;
+
+  object-fit: cover;
+  border-radius: 50%;
+
+  border: 2px solid #30363d;
+}
+
+.card {
+  flex: 1;
+  min-width: 0;
+}
+
+.nameRow {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.name {
+  margin: 0;
+
+  color: #f0f6fc;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.deleteIcon {
+  width: 19px;
+  height: 19px;
+
+  color: #8b949e;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.deleteIcon:hover {
+  color: #f85149;
+  transform: scale(1.08);
+}
+
+.username {
+  margin: 2px 0 10px;
+
+  color: #8b949e;
+
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.body {
+  margin: 0;
+
+  color: #f0f6fc !important;
+
+  font-size: 14px;
+  line-height: 1.6;
+
+  word-break: break-word;
+}
+
+.imageCard {
+  width: 100%;
+  margin-top: 14px;
+
+  border-radius: 10px;
+  overflow: hidden;
+
+  background: #0d1117;
+  border: 1px solid #30363d;
+}
+
+.imageCard img {
+  display: block;
+
+  width: 100%;
+  max-height: 500px;
+
+  object-fit: cover;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 12px;
+
+  width: 100%;
+  padding: 12px 8px;
+  margin-top: 8px;
+
+  border-top: 1px solid #30363d;
+  color: #8b949e;
+}
+
+.singleOption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  flex: 1;
+  padding: 9px 12px;
+
+  border-radius: 8px;
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.singleOption svg {
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+  stroke-width: 1.7;
+}
+
+.singleOption p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.singleOption:hover {
+  background-color: #21262d;
+  color: #e6edf3;
+}
+
+.singleOption:active {
+  transform: scale(0.96);
+}
+
+.singleOption:first-child:hover {
+  color: #6366f1;
+  background-color: rgba(99, 102, 241, 0.12);
+}
+
+.singleOption:nth-child(2):hover {
+  color: #58a6ff;
+}
+
+.singleOption:nth-child(3):hover {
+  color: #a371f7;
+}
+
+.singleOption.liked svg {
+  fill: #6366f1;
+  stroke: #6366f1;
+}
+
+.singleOption.liked {
+  color: #6366f1;
+}
+
+.commentSection {
+  margin-top: 12px;
+  padding: 16px;
+  border-top: 1px solid #30363d;
+  background: #0d1117;
+  border-radius: 0 0 10px 10px;
+}
+
+.commentSection h4 {
+  margin: 0 0 14px;
+  color: #e6edf3;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.commentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.commentItem {
+  padding: 10px 12px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  color: #e6edf3;
+  overflow-wrap: anywhere;
+}
+
+.commentItem p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.noComments {
+  color: #8b949e;
+  font-size: 13px;
+}
+
+.addComment {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.addComment input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  background: #161b22;
+  color: #e6edf3;
+  outline: none;
+}
+
+.addComment input:focus {
+  border-color: #6366f1;
+}
+
+.addComment button {
+  padding: 11px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #6366f1;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addComment button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.commentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.commentAuthor {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e6edf3;
+  margin: 0;
+  text-align: left;
+}
+
+.commentDate {
+  font-size: 12px;
+  color: #8b949e;
+  margin: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.commentAuthor:hover {
+  text-decoration: underline;
+  cursor: pointer;
+  color: #6366f1;
+}
+
+.commentBody {
+  font-size: 12px;
+  color: #76787b;
+  margin: 8px 0;
+}
+
+.username:hover {
+  text-decoration: underline;
+  cursor: pointer;
+  color: #6366f1;
+}
