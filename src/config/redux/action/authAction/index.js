@@ -292,10 +292,7 @@ export const sendEmailOtp = createAsyncThunk(
   "auth/sendEmailOtp",
   async (userData, thunkAPI) => {
     try {
-      const response = await clientServer.post(
-        "/user/send-email-otp",
-        userData,
-      );
+      const response = await clientServer.post("/send-email-otp", userData);
 
       return response.data;
     } catch (error) {
@@ -313,7 +310,7 @@ export const verifyEmailOtp = createAsyncThunk(
   "auth/verifyEmailOtp",
   async ({ email, otp }, thunkAPI) => {
     try {
-      const response = await clientServer.post("/user/verify-email-otp", {
+      const response = await clientServer.post("/verify-email-otp", {
         email,
         otp,
       });
@@ -334,7 +331,7 @@ export const resendEmailOtp = createAsyncThunk(
   "auth/resendEmailOtp",
   async ({ email }, thunkAPI) => {
     try {
-      const response = await clientServer.post("/user/resend-email-otp", {
+      const response = await clientServer.post("/resend-email-otp", {
         email,
       });
 
