@@ -6,13 +6,7 @@ export const getAllPost = createAsyncThunk(
   "post/getAllPosts",
   async (_, thunkAPI) => {
     try {
-      const token = localStorage.getItem("token");
-
-      const response = await clientServer.get("/post/get_post", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await clientServer.get("/post/get_post", {});
 
       return response.data;
     } catch (error) {
@@ -28,7 +22,6 @@ export const createPost = createAsyncThunk(
   "post/createPost",
   async (userData, thunkAPI) => {
     const { file, body } = userData;
-    const token = localStorage.getItem("token");
 
     try {
       const formData = new FormData();
@@ -39,11 +32,11 @@ export const createPost = createAsyncThunk(
         formData.append("media", file);
       }
 
-      const response = await clientServer.post("/post/create_post", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await clientServer.post(
+        "/post/create_post",
+        formData,
+        {},
+      );
 
       return response.data.post;
     } catch (error) {
@@ -59,13 +52,8 @@ export const deletePost = createAsyncThunk(
   "post/delete",
   async ({ post_id }, thunkAPI) => {
     try {
-      const token = localStorage.getItem("token");
-
       const response = await clientServer.delete("/post/delete_post", {
         data: { post_id },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       return response.data;
@@ -82,17 +70,7 @@ export const incrementPostLike = createAsyncThunk(
   "post/incrementPostLike",
   async ({ post_id }, thunkAPI) => {
     try {
-      const token = localStorage.getItem("token");
-
-      const response = await clientServer.post(
-        "/post/like",
-        { post_id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      const response = await clientServer.post("/post/like", { post_id }, {});
 
       return response.data;
     } catch (error) {
@@ -136,7 +114,6 @@ export const postComment = createAsyncThunk(
   async (commentData, thunkAPI) => {
     try {
       const response = await clientServer.post("/comment/create_comment", {
-        token: localStorage.getItem("token"),
         comment: commentData.body,
         post_id: commentData.post_id,
       });

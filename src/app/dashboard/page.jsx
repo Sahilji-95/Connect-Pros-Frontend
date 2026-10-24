@@ -104,7 +104,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {postState.loading ? (
+          {postState.isLoading ? (
             <DashboardSkeleton />
           ) : (
             <div className={styles.postContainer}>
@@ -127,7 +127,6 @@ export default function Dashboard() {
                                 await dispatch(
                                   deletePost({ post_id: post._id }),
                                 );
-                                await dispatch(getAllPost());
                               }}
                             >
                               <svg
@@ -187,8 +186,6 @@ export default function Dashboard() {
                                 await dispatch(
                                   incrementPostLike({ post_id: post._id }),
                                 ).unwrap();
-
-                                await dispatch(getAllPost());
                               } catch (error) {
                                 console.error("Like failed:", error);
                               }

@@ -5,6 +5,7 @@ import {
   getPostsByUsername,
   createPost,
   deletePost,
+  incrementPostLike,
 } from "../../action/postAction";
 
 const initialState = {
@@ -94,6 +95,25 @@ const postSlice = createSlice({
         state.profilePosts = state.profilePosts.filter(
           (post) => post._id !== deletedId,
         );
+      })
+      .addCase(incrementPostLike.fulfilled, (state, action) => {
+        const { post_id, likes, isLiked } = action.payload;
+
+        const post = state.posts.find((item) => item._id === post_id);
+
+        if (post) {
+          post.likes = likes;
+          post.isLiked = isLiked;
+        }
+
+        const profilePost = state.profilePosts.find(
+          (item) => item._id === post_id,
+        );
+
+        if (profilePost) {
+          profilePost.likes = likes;
+          profilePost.isLiked = isLiked;
+        }
       });
   },
 });
