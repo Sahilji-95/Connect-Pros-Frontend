@@ -11,6 +11,7 @@ import {
   uploadProfilePicture,
   updateUserProfile,
   updateProfileData,
+  logoutUser,
 } from "../../action/authAction";
 
 const initialState = {
@@ -102,6 +103,21 @@ const authSlice = createSlice({
         state.message = action.payload || {
           message: "Login failed",
         };
+      })
+
+      .addCase(logoutUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.loading = false;
+        state.profileFetched = false;
+        state.isTokenThere = false;
+        state.user = null;
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
 
       .addCase(registerUser.pending, (state) => {

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import NavBar from "@/component/NavBar";
 
 import {
   getAboutUser,
@@ -190,7 +189,6 @@ export default function EditProfile() {
 
   return (
     <main className={styles.page}>
-      <NavBar />
       <div className={styles.container}>
         <header className={styles.header}>
           <div>

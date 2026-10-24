@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import NavBar from "@/component/NavBar";
 
 import {
   getAboutUser,
@@ -82,7 +81,6 @@ export default function Profile() {
 
   return (
     <main className={styles.page}>
-      <NavBar />
       <div className={styles.container}>
         <header className={styles.pageHeader}>
           <div>

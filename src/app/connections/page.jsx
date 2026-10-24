@@ -51,8 +51,7 @@ export default function Connections() {
 
       return (
         (user.name || "").toLowerCase().includes(query) ||
-        (user.username || "").toLowerCase().includes(query) ||
-        (user.email || "").toLowerCase().includes(query)
+        (user.username || "").toLowerCase().includes(query)
       );
     });
   }, [connectionRequest, searchQuery]);
@@ -65,8 +64,7 @@ export default function Connections() {
 
       return (
         (user.name || "").toLowerCase().includes(query) ||
-        (user.username || "").toLowerCase().includes(query) ||
-        (user.email || "").toLowerCase().includes(query)
+        (user.username || "").toLowerCase().includes(query)
       );
     });
   }, [myConnections, searchQuery]);
@@ -303,10 +301,6 @@ export default function Connections() {
                                 </p>
                               </div>
 
-                              {user.email && (
-                                <p className={styles.email}>{user.email}</p>
-                              )}
-
                               <span className={styles.pendingLabel}>
                                 <span />
                                 Wants to connect
@@ -410,11 +404,6 @@ export default function Connections() {
                                 @{user.username || "username"}
                               </p>
                             </div>
-
-                            {user.email && (
-                              <p className={styles.email}>{user.email}</p>
-                            )}
-
                             <span className={styles.pendingLabel}>
                               <span />
                               Connected

@@ -13,7 +13,6 @@ import { getPostsByUsername } from "@/config/redux/action/postAction";
 
 import { BASE_URl } from "@/config";
 import styles from "./page.module.css";
-import NavBar from "@/component/NavBar";
 import clientServer from "@/config";
 
 export default function ViewProfile() {
@@ -150,8 +149,6 @@ export default function ViewProfile() {
 
   return (
     <main className={styles.page}>
-      <NavBar />
-
       <div className={styles.container}>
         <section className={styles.profileHeader}>
           <div className={styles.avatarWrapper}>
@@ -199,12 +196,6 @@ export default function ViewProfile() {
                 </svg>
               </div>
             </div>
-
-            {userId?.email && (
-              <a className={styles.email} href={`mailto:${userId.email}`}>
-                {userId.email}
-              </a>
-            )}
           </div>
 
           {connectionStatus === "self" ? null : (

@@ -21,6 +21,32 @@ export const loginUser = createAsyncThunk(
   },
 );
 
+//LOGOUT
+export const logoutUser = createAsyncThunk(
+  "user/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await clientServer.post(
+        "/logout",
+        {},
+        {
+          withCredentials: true,
+        },
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error("Logout API error:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+
+      return rejectWithValue(error.response?.data?.message || "Logout failed");
+    }
+  },
+);
+
 // REGISTER
 export const registerUser = createAsyncThunk(
   "user/register",

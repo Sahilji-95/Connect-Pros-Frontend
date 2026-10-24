@@ -15,7 +15,6 @@ import { getAboutUser, getAllUsers } from "@/config/redux/action/authAction";
 import UserLayOut from "@/layout/UserLayout/Index";
 import DashboardLayout from "@/layout/DashboardLayout/Index";
 import styles from "./dashboard.module.css";
-import { BASE_URl } from "@/config";
 import { setPostId } from "@/config/redux/reducer/postReducer/index.js";
 import DashboardSkeleton from "./DashboardSkeleton";
 
@@ -50,13 +49,6 @@ export default function Dashboard() {
     setMedia(null);
     setPostContent("");
   };
-
-  console.log(`AUTH STATE : ${authState.user}`);
-  console.log(`POST STATE : ${postState.post}`);
-  console.log(authState.user?.userId?.profilePicture);
-  console.log(authState.user?.bio);
-  console.log(authState.user?.education);
-  console.log(authState.user?.pastWork);
   return (
     <UserLayOut>
       <DashboardLayout>
