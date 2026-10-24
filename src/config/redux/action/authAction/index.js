@@ -48,27 +48,27 @@ export const logoutUser = createAsyncThunk(
 );
 
 // REGISTER
-export const registerUser = createAsyncThunk(
-  "user/register",
-  async (user, thunkAPI) => {
-    try {
-      const response = await clientServer.post("/register", {
-        name: user.name,
-        username: user.username,
-        email: user.email,
-        password: user.password,
-      });
+// export const registerUser = createAsyncThunk(
+//   "user/register",
+//   async (user, thunkAPI) => {
+//     try {
+//       const response = await clientServer.post("/register", {
+//         name: user.name,
+//         username: user.username,
+//         email: user.email,
+//         password: user.password,
+//       });
 
-      return response.data;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data || {
-          message: error.message || "Registration failed",
-        },
-      );
-    }
-  },
-);
+//       return response.data;
+//     } catch (error) {
+//       return thunkAPI.rejectWithValue(
+//         error.response?.data || {
+//           message: error.message || "Registration failed",
+//         },
+//       );
+//     }
+//   },
+// );
 
 // GET LOGGED-IN USER PROFILE
 export const getAboutUser = createAsyncThunk(
@@ -282,6 +282,67 @@ export const updateProfileData = createAsyncThunk(
       return thunkAPI.rejectWithValue(
         error.response?.data || {
           message: error.message || "Failed to update profile details",
+        },
+      );
+    }
+  },
+);
+
+export const sendEmailOtp = createAsyncThunk(
+  "auth/sendEmailOtp",
+  async (userData, thunkAPI) => {
+    try {
+      const response = await clientServer.post(
+        "/user/send-email-otp",
+        userData,
+      );
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to send OTP",
+        },
+      );
+    }
+  },
+);
+
+// 2. Email OTP verify karna
+export const verifyEmailOtp = createAsyncThunk(
+  "auth/verifyEmailOtp",
+  async ({ email, otp }, thunkAPI) => {
+    try {
+      const response = await clientServer.post("/user/verify-email-otp", {
+        email,
+        otp,
+      });
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to verify OTP",
+        },
+      );
+    }
+  },
+);
+
+// 3. OTP dobara bhejna
+export const resendEmailOtp = createAsyncThunk(
+  "auth/resendEmailOtp",
+  async ({ email }, thunkAPI) => {
+    try {
+      const response = await clientServer.post("/user/resend-email-otp", {
+        email,
+      });
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to resend OTP",
         },
       );
     }

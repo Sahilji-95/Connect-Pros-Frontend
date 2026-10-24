@@ -3,7 +3,7 @@ import {
   getAboutUser,
   getAllUsers,
   loginUser,
-  registerUser,
+  // registerUser,
   getProfileByUsername,
   getConnectionRequests,
   getAllConnections,
@@ -12,6 +12,9 @@ import {
   updateUserProfile,
   updateProfileData,
   logoutUser,
+  sendEmailOtp,
+  verifyEmailOtp,
+  resendEmailOtp,
 } from "../../action/authAction";
 
 const initialState = {
@@ -35,6 +38,13 @@ const initialState = {
   isUpdatingProfile: false,
   updateProfileError: null,
   updateProfileSuccess: false,
+  emailOtpLoading: false,
+  verifyOtpLoading: false,
+  resendOtpLoading: false,
+  emailOtpMessage: null,
+  emailOtpError: null,
+  isEmailVerified: false,
+  pendingVerificationEmail: null,
 };
 
 const authSlice = createSlice({
@@ -120,30 +130,30 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      .addCase(registerUser.pending, (state) => {
-        state.isLoading = true;
-        state.isError = false;
-        state.isSucces = false;
-        state.message = {
-          message: "Registering you...",
-        };
-      })
-      .addCase(registerUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isError = false;
-        state.isSucces = true;
-        state.message = {
-          message: action.payload?.message || "Registration successful",
-        };
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isError = true;
-        state.isSucces = false;
-        state.message = action.payload || {
-          message: "Registration failed",
-        };
-      })
+      // .addCase(registerUser.pending, (state) => {
+      //   state.isLoading = true;
+      //   state.isError = false;
+      //   state.isSucces = false;
+      //   state.message = {
+      //     message: "Registering you...",
+      //   };
+      // })
+      // .addCase(registerUser.fulfilled, (state, action) => {
+      //   state.isLoading = false;
+      //   state.isError = false;
+      //   state.isSucces = true;
+      //   state.message = {
+      //     message: action.payload?.message || "Registration successful",
+      //   };
+      // })
+      // .addCase(registerUser.rejected, (state, action) => {
+      //   state.isLoading = false;
+      //   state.isError = true;
+      //   state.isSucces = false;
+      //   state.message = action.payload || {
+      //     message: "Registration failed",
+      //   };
+      // })
 
       .addCase(getAboutUser.pending, (state) => {
         state.isLoading = true;
@@ -261,6 +271,48 @@ const authSlice = createSlice({
         state.isUpdatingProfile = false;
         state.updateProfileError =
           action.payload?.message || "Failed to update profile details";
+      })
+
+      .addCase(sendEmailOtp.pending, (state) => {
+        state.emailOtpLoading = true;
+        state.emailOtpError = null;
+        state.emailOtpMessage = null;
+      })
+      .addCase(sendEmailOtp.fulfilled, (state, action) => {
+        state.emailOtpLoading = false;
+        state.emailOtpMessage = action.payload.message;
+      })
+      .addCase(sendEmailOtp.rejected, (state, action) => {
+        state.emailOtpLoading = false;
+        state.emailOtpError = action.payload?.message || "Unable to send OTP";
+      })
+
+      .addCase(verifyEmailOtp.pending, (state) => {
+        state.verifyOtpLoading = true;
+        state.emailOtpError = null;
+      })
+      .addCase(verifyEmailOtp.fulfilled, (state, action) => {
+        state.verifyOtpLoading = false;
+        state.isEmailVerified = true;
+        state.emailOtpMessage = action.payload.message;
+      })
+      .addCase(verifyEmailOtp.rejected, (state, action) => {
+        state.verifyOtpLoading = false;
+        state.emailOtpError =
+          action.payload?.message || "OTP verification failed";
+      })
+
+      .addCase(resendEmailOtp.pending, (state) => {
+        state.resendOtpLoading = true;
+        state.emailOtpError = null;
+      })
+      .addCase(resendEmailOtp.fulfilled, (state, action) => {
+        state.resendOtpLoading = false;
+        state.emailOtpMessage = action.payload.message;
+      })
+      .addCase(resendEmailOtp.rejected, (state, action) => {
+        state.resendOtpLoading = false;
+        state.emailOtpError = action.payload?.message || "Unable to resend OTP";
       });
   },
 });

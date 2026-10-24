@@ -347,3 +347,266 @@
     font-size: 15px;
   }
 }
+
+/* Accessible form buttons */
+.button {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.button:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Email OTP screen */
+.otpDescription {
+  margin: 0;
+  color: #c9d1d9;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.otpEmail {
+  margin: -5px 0 8px;
+  color: #a5b4fc;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.fieldLabel {
+  color: #c9d1d9;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: -8px;
+}
+
+.otpInput {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.otpInput::placeholder {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+
+.resendContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  color: #c9d1d9;
+  font-size: 13px;
+  text-align: center;
+}
+
+.textButton,
+.backButton {
+  border: none;
+  background: transparent;
+  color: #818cf8;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.textButton:hover,
+.backButton:hover {
+  color: #a5b4fc;
+  text-decoration: underline;
+}
+
+.textButton:disabled,
+.backButton:disabled {
+  color: #8b949e;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.backButton {
+  align-self: center;
+  margin-top: 8px;
+  padding: 8px;
+}
+
+@media (max-width: 480px) {
+  .otpInput {
+    font-size: 22px;
+    letter-spacing: 8px;
+  }
+
+  .resendContainer {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Wrap each input and its custom validation message */
+.fieldGroup {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fieldError {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 9px 12px;
+
+  color: #c7d2fe;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.45);
+  border-left: 3px solid #6366f1;
+  border-radius: 7px;
+
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+
+  animation: errorAppear 0.18s ease-out;
+}
+
+.inputFiled[aria-invalid="true"] {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
+}
+
+@keyframes errorAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.button {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.otpDescription {
+  margin: 0;
+  color: #c9d1d9;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.otpEmail {
+  margin: -5px 0 8px;
+  color: #a5b4fc;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.fieldLabel {
+  color: #c9d1d9;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: -8px;
+}
+
+.otpInput {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.otpInput::placeholder {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+
+.resendContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  color: #c9d1d9;
+  font-size: 13px;
+  text-align: center;
+}
+
+.textButton,
+.backButton {
+  border: none;
+  background: transparent;
+  color: #818cf8;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.textButton:hover,
+.backButton:hover {
+  color: #a5b4fc;
+  text-decoration: underline;
+}
+
+.textButton:disabled,
+.backButton:disabled {
+  color: #8b949e;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.backButton {
+  align-self: center;
+  margin-top: 8px;
+  padding: 8px;
+}
+
+@media (max-width: 480px) {
+  .otpInput {
+    font-size: 22px;
+    letter-spacing: 8px;
+  }
+
+  .resendContainer {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
