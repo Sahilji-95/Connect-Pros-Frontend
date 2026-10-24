@@ -130,31 +130,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // .addCase(registerUser.pending, (state) => {
-      //   state.isLoading = true;
-      //   state.isError = false;
-      //   state.isSucces = false;
-      //   state.message = {
-      //     message: "Registering you...",
-      //   };
-      // })
-      // .addCase(registerUser.fulfilled, (state, action) => {
-      //   state.isLoading = false;
-      //   state.isError = false;
-      //   state.isSucces = true;
-      //   state.message = {
-      //     message: action.payload?.message || "Registration successful",
-      //   };
-      // })
-      // .addCase(registerUser.rejected, (state, action) => {
-      //   state.isLoading = false;
-      //   state.isError = true;
-      //   state.isSucces = false;
-      //   state.message = action.payload || {
-      //     message: "Registration failed",
-      //   };
-      // })
-
       .addCase(getAboutUser.pending, (state) => {
         state.isLoading = true;
       })
