@@ -1,6 +1,6 @@
 import styles from "./IndexSkeleton.module.css";
 
-export default function SessionSkeleton() {
+export default function IndexSkeleton() {
   return (
     <main className={styles.container}>
       <header className={styles.navbar}>
