@@ -23,7 +23,10 @@ export default function NavBar() {
   return (
     <div className={styles.container}>
       <nav className={styles.navbar}>
-        <h1 style={{ cursor: "pointer" }} onClick={() => router.push("/")}>
+        <h1
+          style={{ cursor: "pointer" }}
+          onClick={() => router.push("/dashboard")}
+        >
           Connect Pro's
         </h1>
 
