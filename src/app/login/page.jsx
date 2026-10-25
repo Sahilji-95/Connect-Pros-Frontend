@@ -545,6 +545,35 @@ function Login() {
                   <FieldError error={fieldErrors.password} />
                 </div>
 
+                {/* Added: Forgot Password link; visible only in Sign In mode */}
+                {userLoginMethod && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      width: "100%",
+                      marginTop: "-6px",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => router.push("/forget-password")}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "#818cf8",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        padding: "4px 0",
+                      }}
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   className={styles.button}

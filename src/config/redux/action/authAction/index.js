@@ -345,3 +345,86 @@ export const resendEmailOtp = createAsyncThunk(
     }
   },
 );
+
+/* FORGOT PASSWORD: Send OTP */
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async ({ email }, thunkAPI) => {
+    try {
+      const response = await clientServer.post("/forgot-password", {
+        email: email.trim().toLowerCase(),
+      });
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to send reset OTP",
+        },
+      );
+    }
+  },
+);
+
+/* VERIFY PASSWORD RESET OTP */
+export const verifyResetOTP = createAsyncThunk(
+  "auth/verifyResetOTP",
+  async ({ email, otp }, thunkAPI) => {
+    try {
+      const response = await clientServer.post("/verify-reset-otp", {
+        email: email.trim().toLowerCase(),
+        otp,
+      });
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to verify reset OTP",
+        },
+      );
+    }
+  },
+);
+
+/* RESEND PASSWORD RESET OTP */
+export const resendResetOTP = createAsyncThunk(
+  "auth/resendResetOTP",
+  async ({ email }, thunkAPI) => {
+    try {
+      const response = await clientServer.post("/resend-reset-otp", {
+        email: email.trim().toLowerCase(),
+      });
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to resend reset OTP",
+        },
+      );
+    }
+  },
+);
+
+/* RESET PASSWORD */
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ resetToken, newPassword, confirmPassword }, thunkAPI) => {
+    try {
+      const response = await clientServer.post("/reset-password", {
+        resetToken,
+        newPassword,
+        confirmPassword,
+      });
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to reset password",
+        },
+      );
+    }
+  },
+);

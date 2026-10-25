@@ -15,6 +15,10 @@ import {
   sendEmailOtp,
   verifyEmailOtp,
   resendEmailOtp,
+  forgotPassword,
+  verifyResetOTP,
+  resendResetOTP,
+  resetPassword,
 } from "../../action/authAction";
 
 const initialState = {
@@ -45,6 +49,18 @@ const initialState = {
   emailOtpError: null,
   isEmailVerified: false,
   pendingVerificationEmail: null,
+  forgotPasswordLoading: false,
+  verifyResetPasswordOtpLoading: false,
+  resendResetPasswordOtpLoading: false,
+  resetPasswordLoading: false,
+  forgotPasswordMessage: "",
+  forgotPasswordError: null,
+  verifyResetPasswordOtpMessage: "",
+  verifyResetPasswordOtpError: null,
+  resendResetPasswordOtpMessage: "",
+  resendResetPasswordOtpError: null,
+  resetPasswordMessage: "",
+  resetPasswordError: null,
 };
 
 const authSlice = createSlice({
@@ -288,6 +304,74 @@ const authSlice = createSlice({
       .addCase(resendEmailOtp.rejected, (state, action) => {
         state.resendOtpLoading = false;
         state.emailOtpError = action.payload?.message || "Unable to resend OTP";
+      })
+
+      // FORGOT PASSWORD: SEND OTP
+      .addCase(forgotPassword.pending, (state) => {
+        state.forgotPasswordLoading = true;
+        state.forgotPasswordMessage = "";
+        state.forgotPasswordError = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state, action) => {
+        state.forgotPasswordLoading = false;
+        state.forgotPasswordMessage =
+          action.payload?.message || "Reset OTP sent successfully.";
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.forgotPasswordLoading = false;
+        state.forgotPasswordError =
+          action.payload?.message || "Unable to send reset OTP.";
+      })
+
+      // VERIFY RESET OTP
+      .addCase(verifyResetOTP.pending, (state) => {
+        state.verifyResetPasswordOtpLoading = true;
+        state.verifyResetPasswordOtpMessage = "";
+        state.verifyResetPasswordOtpError = null;
+      })
+      .addCase(verifyResetOTP.fulfilled, (state, action) => {
+        state.verifyResetPasswordOtpLoading = false;
+        state.verifyResetPasswordOtpMessage =
+          action.payload?.message || "OTP verified successfully.";
+      })
+      .addCase(verifyResetOTP.rejected, (state, action) => {
+        state.verifyResetPasswordOtpLoading = false;
+        state.verifyResetPasswordOtpError =
+          action.payload?.message || "OTP verification failed.";
+      })
+
+      // RESEND RESET OTP
+      .addCase(resendResetOTP.pending, (state) => {
+        state.resendResetPasswordOtpLoading = true;
+        state.resendResetPasswordOtpMessage = "";
+        state.resendResetPasswordOtpError = null;
+      })
+      .addCase(resendResetOTP.fulfilled, (state, action) => {
+        state.resendResetPasswordOtpLoading = false;
+        state.resendResetPasswordOtpMessage =
+          action.payload?.message || "A new OTP has been sent.";
+      })
+      .addCase(resendResetOTP.rejected, (state, action) => {
+        state.resendResetPasswordOtpLoading = false;
+        state.resendResetPasswordOtpError =
+          action.payload?.message || "Unable to resend OTP.";
+      })
+
+      // RESET PASSWORD
+      .addCase(resetPassword.pending, (state) => {
+        state.resetPasswordLoading = true;
+        state.resetPasswordMessage = "";
+        state.resetPasswordError = null;
+      })
+      .addCase(resetPassword.fulfilled, (state, action) => {
+        state.resetPasswordLoading = false;
+        state.resetPasswordMessage =
+          action.payload?.message || "Password reset successfully.";
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.resetPasswordLoading = false;
+        state.resetPasswordError =
+          action.payload?.message || "Unable to reset password.";
       });
   },
 });
