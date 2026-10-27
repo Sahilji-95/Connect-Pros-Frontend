@@ -187,7 +187,6 @@ export default function Connections() {
 
     const ok = await handleDeleteConnection(selectedConnection._id);
 
-    // Fail hone par popup band hota hai, error upar dikhega.
     setShowDeletePopup(false);
     setSelectedConnection(null);
 
@@ -335,7 +334,6 @@ export default function Connections() {
               </div>
             )}
 
-            {/* ---------------- Requests tab ---------------- */}
             {activeTab === "requests" && (
               <>
                 <div className={styles.sectionHeader}>

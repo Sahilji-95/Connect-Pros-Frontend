@@ -1,6 +1,7 @@
 "use client";
 
 import React, {
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -28,8 +29,6 @@ import {
 
 import { getAboutUser } from "@/config/redux/action/authAction";
 import { getChatSocket } from "@/config/socket";
-
-// ---------------- HELPERS ----------------
 
 const getId = (value) => {
   if (!value) return null;
@@ -81,9 +80,7 @@ const getErrorMessage = (error) => {
   );
 };
 
-// ---------------- COMPONENT ----------------
-
-export default function Chat() {
+function ChatContent() {
   const dispatch = useDispatch();
 
   const searchParams = useSearchParams();
@@ -118,7 +115,6 @@ export default function Chat() {
   const sendingRef = useRef(false);
   const loadingOlderRef = useRef(false);
 
-  // Resolve actual logged-in user ID.
   const currentUserId = useMemo(() => {
     const user = authUser?.userId || authUser?.user || authUser;
 
@@ -135,7 +131,6 @@ export default function Chat() {
     return conversations.find((conversation) => conversation._id === activeId);
   }, [conversations, activeId]);
 
-  // Convert backend conversation format to existing UI format.
   const normalizedConversations = useMemo(() => {
     if (!currentUserId) return [];
 
@@ -178,8 +173,6 @@ export default function Chat() {
     });
   }, [normalizedConversations, search]);
 
-  // ---------------- LOAD USER & CONVERSATIONS ----------------
-
   useEffect(() => {
     if (!profileFetched || !currentUserId) {
       dispatch(getAboutUser());
@@ -191,8 +184,6 @@ export default function Chat() {
 
     dispatch(getConversations());
   }, [dispatch, currentUserId]);
-
-  // ---------------- READ RECEIPTS ----------------
 
   const markMessagesRead = useCallback(
     (conversationId, conversationMessages) => {
@@ -231,8 +222,6 @@ export default function Chat() {
     },
     [currentUserId],
   );
-
-  // ---------------- SOCKET CONNECTION ----------------
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -279,14 +268,10 @@ export default function Chat() {
         }),
       );
 
-      // Refresh conversation list for any newly created conversation.
       dispatch(getConversations());
     };
 
     const handleReadReceipt = (payload) => {
-      // Read receipt events will be reflected through a
-      // history refresh until dedicated Redux receipt handling
-      // is added.
       const conversationId = getId(payload?.conversationId);
 
       if (conversationId && conversationId === activeConversationRef.current) {
@@ -321,8 +306,6 @@ export default function Chat() {
       setSocketConnected(false);
     };
   }, [currentUserId, dispatch]);
-
-  // ---------------- SELECT CONVERSATION ----------------
 
   const handleSelectConversation = useCallback(
     async (conversationId) => {
@@ -367,15 +350,11 @@ export default function Chat() {
     setSendError("");
   };
 
-  // ---------------- MARK ACTIVE MESSAGES READ ----------------
-
   useEffect(() => {
     if (!activeId || !socketConnected) return;
 
     markMessagesRead(activeId, messages);
   }, [activeId, messages, socketConnected, markMessagesRead]);
-
-  // ---------------- AUTO SCROLL ----------------
 
   useEffect(() => {
     if (!activeId || olderMessagesLoading) return;
@@ -385,8 +364,6 @@ export default function Chat() {
       block: "end",
     });
   }, [activeId, messages.length, olderMessagesLoading]);
-
-  // ---------------- LOAD OLDER MESSAGES ----------------
 
   const handleLoadOlderMessages = async () => {
     if (
@@ -430,8 +407,6 @@ export default function Chat() {
       loadingOlderRef.current = false;
     }
   };
-
-  // ---------------- SEND MESSAGE ----------------
 
   const handleSend = () => {
     const clean = text.trim();
@@ -478,9 +453,6 @@ export default function Chat() {
           return;
         }
 
-        // If backend returns message in acknowledgement,
-        // add it immediately. Duplicate socket events are
-        // deduplicated by Redux using message._id.
         const sentMessage = ack?.message;
 
         if (sentMessage?._id) {
@@ -510,8 +482,6 @@ export default function Chat() {
     }
   };
 
-  // ---------------- RENDER ----------------
-
   return (
     <UserLayOut>
       <DashboardLayout>
@@ -520,8 +490,6 @@ export default function Chat() {
             activeId ? styles.windowOpen : ""
           }`}
         >
-          {/* CONVERSATION LIST */}
-
           <aside className={styles.listPanel}>
             <div className={styles.listHeader}>
               <h2 className={styles.title}>Messages</h2>
@@ -610,8 +578,6 @@ export default function Chat() {
             </div>
           </aside>
 
-          {/* CHAT WINDOW */}
-
           <section className={styles.windowPanel}>
             {!activeChat ? (
               <div className={styles.placeholder}>
@@ -636,8 +602,6 @@ export default function Chat() {
               </div>
             ) : (
               <>
-                {/* CHAT HEADER */}
-
                 <header className={styles.windowHeader}>
                   <button
                     className={styles.backButton}
@@ -671,8 +635,6 @@ export default function Chat() {
                     </p>
                   </div>
                 </header>
-
-                {/* MESSAGES */}
 
                 <div className={styles.messages} ref={messagesContainerRef}>
                   {hasMoreByConversation[activeId] && (
@@ -730,8 +692,6 @@ export default function Chat() {
                   <div ref={bottomRef} />
                 </div>
 
-                {/* MESSAGE COMPOSER */}
-
                 <footer className={styles.composer}>
                   <textarea
                     ref={inputRef}
@@ -788,5 +748,13 @@ export default function Chat() {
         </div>
       </DashboardLayout>
     </UserLayOut>
+  );
+}
+
+export default function Chat() {
+  return (
+    <Suspense fallback={<div>Loading chat...</div>}>
+      <ChatContent />
+    </Suspense>
   );
 }

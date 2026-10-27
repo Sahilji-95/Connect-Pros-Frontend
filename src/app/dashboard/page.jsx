@@ -64,8 +64,6 @@ export default function Dashboard() {
   };
 
   const handleShare = async (post) => {
-    // Agar single post page nahi hai to isse profile link se badal lo:
-    // `${window.location.origin}/view_profile/${post.userId.username}`
     const url = `${window.location.origin}/post/${post._id}`;
 
     const shareData = {
@@ -83,7 +81,6 @@ export default function Dashboard() {
       await navigator.clipboard.writeText(url);
       showToast("Link copied!");
     } catch (error) {
-      // User ne share sheet band kar di to AbortError aata hai, wo error nahi hai.
       if (error.name !== "AbortError") {
         console.error("Share failed:", error);
         showToast("Unable to share");
@@ -91,7 +88,6 @@ export default function Dashboard() {
     }
   };
 
-  /* ---------- Delete flow: click -> popup -> confirm -> API ---------- */
   const handleDeleteClick = (post) => {
     setPostToDelete(post);
     setShowDeletePopup(true);
@@ -408,7 +404,6 @@ export default function Dashboard() {
 
           {toast && <div className={styles.toast}>{toast}</div>}
 
-          {/* ---------------- Delete confirmation popup ---------------- */}
           {showDeletePopup && (
             <div className={styles.modalOverlay} onClick={handleCancelDelete}>
               <div
