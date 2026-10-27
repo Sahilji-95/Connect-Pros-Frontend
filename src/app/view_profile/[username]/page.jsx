@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
@@ -16,6 +16,8 @@ import styles from "./page.module.css";
 import clientServer from "@/config";
 
 export default function ViewProfile() {
+  const router = useRouter();
+  const [messageLoading, setMessageLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState("none");
   const [requestId, setRequestId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -113,6 +115,33 @@ export default function ViewProfile() {
       dispatch(getPostsByUsername(username));
     }
   }, [username, dispatch]);
+
+  const handleMessage = async () => {
+    if (!profileUserId || messageLoading) return;
+
+    try {
+      setMessageLoading(true);
+
+      const response = await clientServer.post("/chat/conversations", {
+        connectionId: profileUserId,
+      });
+
+      const conversationId = response.data?.conversation?._id;
+
+      if (!conversationId) {
+        throw new Error("Conversation ID was not returned.");
+      }
+
+      router.push(`/chat?conversationId=${encodeURIComponent(conversationId)}`);
+    } catch (error) {
+      console.error(
+        "Failed to open conversation:",
+        error.response?.data || error.message,
+      );
+    } finally {
+      setMessageLoading(false);
+    }
+  };
 
   if (profileLoading) {
     return (
@@ -220,12 +249,23 @@ export default function ViewProfile() {
               )}
 
               {connectionStatus === "accepted" && (
-                <button
-                  className={`${styles.connectionBtn} ${styles.connectedBtn}`}
-                  disabled
-                >
-                  ✓ Connected
-                </button>
+                <>
+                  <button
+                    className={`${styles.connectionBtn} ${styles.connectedBtn}`}
+                    disabled
+                  >
+                    ✓ Connected
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`${styles.connectionBtn} ${styles.messageBtn}`}
+                    onClick={handleMessage}
+                    disabled={messageLoading}
+                  >
+                    {messageLoading ? "Opening..." : "✉ Message"}
+                  </button>
+                </>
               )}
 
               {connectionStatus === "received" && (

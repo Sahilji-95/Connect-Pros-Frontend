@@ -5,15 +5,25 @@ import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/layout/DashboardLayout/Index";
 import UserLayOut from "@/layout/UserLayout/Index";
+import clientServer from "@/config";
 import {
   getAllConnections,
   getAllMyConnections,
   getAboutUser,
   getAllUsers,
   acceptConnectionRequest,
+  deleteConnection,
 } from "@/config/redux/action/authAction/index.js";
 import styles from "./connections.module.css";
-import { Search, Users, Check, X, UserPlus } from "lucide-react";
+import {
+  Search,
+  Users,
+  Check,
+  X,
+  UserPlus,
+  MessageCircle,
+  Trash2,
+} from "lucide-react";
 
 export default function Connections() {
   const dispatch = useDispatch();
@@ -26,9 +36,15 @@ export default function Connections() {
   } = useSelector((state) => state.auth);
 
   const [loadingRequestId, setLoadingRequestId] = useState(null);
+  const [messageLoadingId, setMessageLoadingId] = useState(null);
+  const [deleteLoadingId, setDeleteLoadingId] = useState(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("requests");
   const [errorMessage, setErrorMessage] = useState("");
+
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [selectedConnection, setSelectedConnection] = useState(null);
 
   useEffect(() => {
     dispatch(getAboutUser());
@@ -91,6 +107,92 @@ export default function Connections() {
       );
     } finally {
       setLoadingRequestId(null);
+    }
+  };
+
+  const handleMessage = async (connectionId) => {
+    if (!connectionId || messageLoadingId) return;
+
+    try {
+      setErrorMessage("");
+      setMessageLoadingId(connectionId);
+
+      const response = await clientServer.post("/chat/conversations", {
+        connectionId,
+      });
+
+      const conversationId = response.data?.conversation?._id;
+
+      if (!conversationId) {
+        throw new Error("Conversation could not be opened.");
+      }
+
+      router.push(`/chat?conversationId=${encodeURIComponent(conversationId)}`);
+    } catch (error) {
+      console.error("Failed to open chat:", error);
+
+      setErrorMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to open chat. Please try again.",
+      );
+    } finally {
+      setMessageLoadingId(null);
+    }
+  };
+
+  /* ---------- Delete flow: click -> popup -> confirm -> API ---------- */
+
+  // Returns true on success, false on failure.
+  const handleDeleteConnection = async (connectionId) => {
+    if (!connectionId || deleteLoadingId) return false;
+
+    try {
+      setErrorMessage("");
+      setDeleteLoadingId(connectionId);
+
+      await dispatch(deleteConnection(connectionId)).unwrap();
+      await dispatch(getAllMyConnections()).unwrap();
+
+      return true;
+    } catch (error) {
+      console.error("Failed to delete connection:", error);
+
+      setErrorMessage(
+        typeof error === "string"
+          ? error
+          : error?.message ||
+              "Unable to delete this connection. Please try again.",
+      );
+
+      return false;
+    } finally {
+      setDeleteLoadingId(null);
+    }
+  };
+
+  const handleDeleteClick = (user) => {
+    setSelectedConnection(user);
+    setShowDeletePopup(true);
+  };
+
+  const handleCancelDelete = () => {
+    if (deleteLoadingId) return;
+    setShowDeletePopup(false);
+    setSelectedConnection(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedConnection) return;
+
+    const ok = await handleDeleteConnection(selectedConnection._id);
+
+    // Fail hone par popup band hota hai, error upar dikhega.
+    setShowDeletePopup(false);
+    setSelectedConnection(null);
+
+    if (!ok) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -233,6 +335,7 @@ export default function Connections() {
               </div>
             )}
 
+            {/* ---------------- Requests tab ---------------- */}
             {activeTab === "requests" && (
               <>
                 <div className={styles.sectionHeader}>
@@ -347,6 +450,7 @@ export default function Connections() {
               </>
             )}
 
+            {/* ---------------- My Connections tab ---------------- */}
             {activeTab === "connections" && (
               <>
                 <div className={styles.sectionHeader}>
@@ -394,6 +498,7 @@ export default function Connections() {
 
                           <div className={styles.userDetails}>
                             <h3>{user.name || "Unknown User"}</h3>
+
                             <div
                               onClick={() => {
                                 router.push(`/view_profile/${user.username}`);
@@ -404,11 +509,43 @@ export default function Connections() {
                                 @{user.username || "username"}
                               </p>
                             </div>
+
                             <span className={styles.pendingLabel}>
                               <span />
                               Connected
                             </span>
                           </div>
+                        </div>
+
+                        <div className={styles.connectionActions}>
+                          <button
+                            type="button"
+                            className={styles.messageBtn}
+                            disabled={messageLoadingId !== null}
+                            onClick={() => handleMessage(user._id)}
+                          >
+                            {messageLoadingId === user._id ? (
+                              <span className={styles.spinner} />
+                            ) : (
+                              <MessageCircle size={16} />
+                            )}
+
+                            <span>
+                              {messageLoadingId === user._id
+                                ? "Opening..."
+                                : "Message"}
+                            </span>
+                          </button>
+
+                          <button
+                            type="button"
+                            className={styles.deleteBtn}
+                            disabled={deleteLoadingId !== null}
+                            onClick={() => handleDeleteClick(user)}
+                          >
+                            <Trash2 size={16} />
+                            <span>Delete</span>
+                          </button>
                         </div>
                       </article>
                     ))}
@@ -422,6 +559,58 @@ export default function Connections() {
               <p>Your network, your community.</p>
             </footer>
           </section>
+
+          {/* ---------------- Delete confirmation popup ---------------- */}
+          {showDeletePopup && (
+            <div className={styles.modalOverlay} onClick={handleCancelDelete}>
+              <div
+                className={styles.confirmModal}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="delete-modal-title"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className={styles.modalIcon}>
+                  <Trash2 size={24} />
+                </div>
+
+                <h2 id="delete-modal-title">Delete Connection?</h2>
+
+                <p>
+                  Are you sure you want to delete{" "}
+                  <strong>
+                    {selectedConnection?.name || "this connection"}
+                  </strong>
+                  ? This action cannot be undone.
+                </p>
+
+                <div className={styles.modalActions}>
+                  <button
+                    type="button"
+                    className={styles.cancelBtn}
+                    onClick={handleCancelDelete}
+                    disabled={deleteLoadingId !== null}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.confirmDeleteBtn}
+                    onClick={handleConfirmDelete}
+                    disabled={deleteLoadingId !== null}
+                  >
+                    {deleteLoadingId ? (
+                      <span className={styles.spinner} />
+                    ) : (
+                      <Trash2 size={16} />
+                    )}
+                    {deleteLoadingId ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </DashboardLayout>
     </UserLayOut>

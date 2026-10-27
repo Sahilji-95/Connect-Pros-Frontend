@@ -446,3 +446,100 @@
   cursor: pointer;
   color: #6366f1;
 }
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(1, 4, 9, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+.confirmModal {
+  width: 100%;
+  max-width: 400px;
+  padding: 28px 24px 22px;
+  text-align: center;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  color: #e6edf3;
+}
+
+.modalIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  color: #f85149;
+  background: rgba(248, 81, 73, 0.12);
+  border-radius: 50%;
+}
+
+.modalIcon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.confirmModal h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #f0f6fc;
+}
+
+.confirmModal p {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #8b949e;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+}
+
+.cancelBtn,
+.confirmDeleteBtn {
+  flex: 1;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    background 0.2s ease;
+}
+
+.cancelBtn {
+  color: #e6edf3;
+  background: #21262d;
+  border: 1px solid #30363d;
+}
+
+.confirmDeleteBtn {
+  color: #fff;
+  background: #da3633;
+  border: 1px solid #da3633;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background: #30363d;
+}
+
+.confirmDeleteBtn:hover:not(:disabled) {
+  background: #f85149;
+}
+
+.cancelBtn:disabled,
+.confirmDeleteBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

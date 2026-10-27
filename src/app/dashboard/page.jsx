@@ -18,6 +18,9 @@ import styles from "./dashboard.module.css";
 import { setPostId } from "@/config/redux/reducer/postReducer/index.js";
 import DashboardSkeleton from "./DashboardSkeleton";
 
+const TRASH_PATH =
+  "m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.682-.107 1.022-.166m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0";
+
 export default function Dashboard() {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -25,6 +28,11 @@ export default function Dashboard() {
   const [postContent, setPostContent] = useState("");
   const [media, setMedia] = useState(null);
   const [commentText, setCommentText] = useState("");
+  const [toast, setToast] = useState("");
+
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const authState = useSelector((state) => state.auth);
   const postState = useSelector((state) => state.post);
@@ -49,6 +57,67 @@ export default function Dashboard() {
     setMedia(null);
     setPostContent("");
   };
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(""), 2000);
+  };
+
+  const handleShare = async (post) => {
+    // Agar single post page nahi hai to isse profile link se badal lo:
+    // `${window.location.origin}/view_profile/${post.userId.username}`
+    const url = `${window.location.origin}/post/${post._id}`;
+
+    const shareData = {
+      title: `${post.userId?.name || "User"} on ConnectPros`,
+      text: post.body?.slice(0, 100) || "Check out this post",
+      url,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+
+      await navigator.clipboard.writeText(url);
+      showToast("Link copied!");
+    } catch (error) {
+      // User ne share sheet band kar di to AbortError aata hai, wo error nahi hai.
+      if (error.name !== "AbortError") {
+        console.error("Share failed:", error);
+        showToast("Unable to share");
+      }
+    }
+  };
+
+  /* ---------- Delete flow: click -> popup -> confirm -> API ---------- */
+  const handleDeleteClick = (post) => {
+    setPostToDelete(post);
+    setShowDeletePopup(true);
+  };
+
+  const handleCancelDelete = () => {
+    if (isDeleting) return;
+    setShowDeletePopup(false);
+    setPostToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!postToDelete || isDeleting) return;
+
+    try {
+      setIsDeleting(true);
+      await dispatch(deletePost({ post_id: postToDelete._id }));
+    } catch (error) {
+      console.error("Delete failed:", error);
+    } finally {
+      setIsDeleting(false);
+      setShowDeletePopup(false);
+      setPostToDelete(null);
+    }
+  };
+
   return (
     <UserLayOut>
       <DashboardLayout>
@@ -122,13 +191,7 @@ export default function Dashboard() {
                           <p className={styles.name}>{post.userId.name}</p>
 
                           {post.userId._id === authState.user?.userId?._id && (
-                            <div
-                              onClick={async () => {
-                                await dispatch(
-                                  deletePost({ post_id: post._id }),
-                                );
-                              }}
-                            >
+                            <div onClick={() => handleDeleteClick(post)}>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -140,7 +203,7 @@ export default function Dashboard() {
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
-                                  d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.682-.107 1.022-.166m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                                  d={TRASH_PATH}
                                 />
                               </svg>
                             </div>
@@ -232,7 +295,12 @@ export default function Dashboard() {
                               />
                             </svg>
                           </div>
-                          <div className={styles.singleOption}>
+                          <div
+                            className={styles.singleOption}
+                            onClick={() => handleShare(post)}
+                            role="button"
+                            aria-label="Share post"
+                          >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               fill="none"
@@ -335,6 +403,64 @@ export default function Dashboard() {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {toast && <div className={styles.toast}>{toast}</div>}
+
+          {/* ---------------- Delete confirmation popup ---------------- */}
+          {showDeletePopup && (
+            <div className={styles.modalOverlay} onClick={handleCancelDelete}>
+              <div
+                className={styles.confirmModal}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="delete-post-title"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className={styles.modalIcon}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d={TRASH_PATH}
+                    />
+                  </svg>
+                </div>
+
+                <h2 id="delete-post-title">Delete Post?</h2>
+
+                <p>
+                  Are you sure you want to delete this post? This action cannot
+                  be undone.
+                </p>
+
+                <div className={styles.modalActions}>
+                  <button
+                    type="button"
+                    className={styles.cancelBtn}
+                    onClick={handleCancelDelete}
+                    disabled={isDeleting}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.confirmDeleteBtn}
+                    onClick={handleConfirmDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

@@ -47,29 +47,6 @@ export const logoutUser = createAsyncThunk(
   },
 );
 
-// REGISTER
-// export const registerUser = createAsyncThunk(
-//   "user/register",
-//   async (user, thunkAPI) => {
-//     try {
-//       const response = await clientServer.post("/register", {
-//         name: user.name,
-//         username: user.username,
-//         email: user.email,
-//         password: user.password,
-//       });
-
-//       return response.data;
-//     } catch (error) {
-//       return thunkAPI.rejectWithValue(
-//         error.response?.data || {
-//           message: error.message || "Registration failed",
-//         },
-//       );
-//     }
-//   },
-// );
-
 // GET LOGGED-IN USER PROFILE
 export const getAboutUser = createAsyncThunk(
   "user/aboutUser",
@@ -220,6 +197,23 @@ export const getAllMyConnections = createAsyncThunk(
     } catch (error) {
       return thunkAPI.rejectWithValue(
         error.response?.data?.message || "Failed to fetch connections",
+      );
+    }
+  },
+);
+
+export const deleteConnection = createAsyncThunk(
+  "auth/deleteConnection",
+  async (connectionId, thunkAPI) => {
+    try {
+      const response = await clientServer.post("/user/delete_connection", {
+        connectionId,
+      });
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Failed to delete connection",
       );
     }
   },
