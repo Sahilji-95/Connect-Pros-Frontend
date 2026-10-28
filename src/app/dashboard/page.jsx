@@ -34,6 +34,8 @@ export default function Dashboard() {
   const [postToDelete, setPostToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [previewUrl, setPreviewUrl] = useState(null);
+
   const authState = useSelector((state) => state.auth);
   const postState = useSelector((state) => state.post);
 
@@ -113,62 +115,96 @@ export default function Dashboard() {
       setPostToDelete(null);
     }
   };
+  useEffect(() => {
+    if (!media) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(media);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [media]);
 
   return (
     <UserLayOut>
       <DashboardLayout>
         <div className={styles.scrollComponent}>
           <div className={styles.createPostContainer}>
-            {authState.profileFetched && authState.user?.userId && (
-              <img
-                src={
-                  authState.user.userId.profilePicture || "/default-avatar.png"
-                }
-                alt="Profile"
-                width={100}
+            <div className={styles.createTop}>
+              {authState.profileFetched && authState.user?.userId && (
+                <img
+                  className={styles.createAvatar}
+                  src={
+                    authState.user.userId.profilePicture ||
+                    "/default-avatar.png"
+                  }
+                  alt="Profile"
+                />
+              )}
+
+              <textarea
+                placeholder="What's on your mind?"
+                onChange={(e) => setPostContent(e.target.value)}
+                value={postContent}
+                rows={2}
               />
+            </div>
+
+            {previewUrl && (
+              <div className={styles.previewWrapper}>
+                <img
+                  className={styles.previewImage}
+                  src={previewUrl}
+                  alt="Selected image preview"
+                />
+                <button
+                  type="button"
+                  className={styles.removePreview}
+                  onClick={() => setMedia(null)}
+                  aria-label="Remove image"
+                >
+                  ✕
+                </button>
+              </div>
             )}
 
-            <textarea
-              placeholder="What's on your mind?"
-              onChange={(e) => setPostContent(e.target.value)}
-              value={postContent}
-            />
-
-            <label htmlFor="fileupload">
-              <div className={styles.Fab}>
+            <div className={styles.createActions}>
+              <label htmlFor="fileupload" className={styles.attachBtn}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className="size-6"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M12 4.5v15m7.5-7.5h-15"
+                    d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
                   />
                 </svg>
-              </div>
-            </label>
+                <span>Photo</span>
+              </label>
 
-            <input
-              type="file"
-              hidden
-              id="fileupload"
-              accept="image/png,image/jpeg,image/webp,image/gif"
-              onChange={(e) => setMedia(e.target.files?.[0] || null)}
-            />
+              <input
+                type="file"
+                hidden
+                id="fileupload"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={(e) => {
+                  setMedia(e.target.files?.[0] || null);
+                  e.target.value = "";
+                }}
+              />
 
-            {media && <p>{media.name}</p>}
+              {media && <span className={styles.fileName}>{media.name}</span>}
 
-            {(postContent.trim() || media) && (
-              <div className={styles.upload} onClick={handlePost}>
-                Post
-              </div>
-            )}
+              {(postContent.trim() || media) && (
+                <div className={styles.upload} onClick={handlePost}>
+                  Post
+                </div>
+              )}
+            </div>
           </div>
 
           {postState.isLoading ? (
@@ -201,11 +237,32 @@ export default function Dashboard() {
                         />
                         <div className={styles.card}>
                           <div className={styles.nameRow}>
-                            <p className={styles.name}>{post.userId.name}</p>
+                            <div className={styles.authorBlock}>
+                              <p className={styles.name}>{post.userId.name}</p>
+                              <p
+                                className={styles.username}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  router.push(
+                                    `/view_profile/${post.userId.username}`,
+                                  );
+                                }}
+                              >
+                                @{post.userId.username}
+                              </p>
+                            </div>
 
                             {post.userId._id ===
                               authState.user?.userId?._id && (
-                              <div onClick={() => handleDeleteClick(post)}>
+                              <button
+                                type="button"
+                                className={styles.deleteBtn}
+                                aria-label="Delete post"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleDeleteClick(post);
+                                }}
+                              >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   fill="none"
@@ -220,20 +277,10 @@ export default function Dashboard() {
                                     d={TRASH_PATH}
                                   />
                                 </svg>
-                              </div>
+                              </button>
                             )}
                           </div>
-                          <p
-                            className={styles.username}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              router.push(
-                                `/view_profile/${post.userId.username}`,
-                              );
-                            }}
-                          >
-                            @{post.userId.username}
-                          </p>
+
                           <p className={styles.body}>{post.body}</p>
 
                           {post.media && (
@@ -289,7 +336,11 @@ export default function Dashboard() {
                               <p>{post.likes}</p>
                             </div>
                             <div
-                              className={styles.singleOption}
+                              className={`${styles.singleOption} ${
+                                postState.postId === post._id
+                                  ? styles.active
+                                  : ""
+                              }`}
                               onClick={() => {
                                 if (postState.postId === post._id) {
                                   dispatch(setPostId(""));
@@ -314,6 +365,15 @@ export default function Dashboard() {
                                   d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
                                 />
                               </svg>
+                              {(() => {
+                                const commentCount =
+                                  postState.postId === post._id
+                                    ? (postState.comment?.length ?? 0)
+                                    : post.commentsCount;
+                                return commentCount != null ? (
+                                  <p>{commentCount}</p>
+                                ) : null;
+                              })()}
                             </div>
                             <div
                               className={styles.singleOption}
@@ -338,7 +398,11 @@ export default function Dashboard() {
                             </div>
                           </div>
                           {postState.postId === post._id && (
-                            <div className={styles.commentSection}>
+                            <div
+                              className={styles.commentSection}
+                              onClick={(event) => event.stopPropagation()}
+                              onKeyDown={(event) => event.stopPropagation()}
+                            >
                               <h4>Comments</h4>
 
                               <div className={styles.commentsList}>
@@ -348,31 +412,57 @@ export default function Dashboard() {
                                       key={comment._id}
                                       className={styles.commentItem}
                                     >
-                                      <div className={styles.commentHeader}>
-                                        <p className={styles.commentAuthor}>
-                                          {comment.userId?.name || "User"}
-                                        </p>
+                                      {comment.userId?.profilePicture ? (
+                                        <img
+                                          className={styles.commentAvatar}
+                                          src={comment.userId.profilePicture}
+                                          alt={comment.userId?.name || "User"}
+                                        />
+                                      ) : (
+                                        <div
+                                          className={styles.commentAvatar}
+                                          aria-hidden="true"
+                                        >
+                                          {(comment.userId?.name || "U")
+                                            .charAt(0)
+                                            .toUpperCase()}
+                                        </div>
+                                      )}
 
-                                        <p className={styles.commentDate}>
-                                          {comment.createdAt
-                                            ? new Date(
-                                                comment.createdAt,
-                                              ).toLocaleString("en-IN", {
-                                                day: "2-digit",
-                                                month: "short",
-                                                year: "numeric",
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                              })
-                                            : "Date unavailable"}
+                                      <div className={styles.commentContent}>
+                                        <div className={styles.commentHeader}>
+                                          <p className={styles.commentAuthor}>
+                                            {comment.userId?.name || "User"}
+                                          </p>
+
+                                          <p className={styles.commentDate}>
+                                            {comment.createdAt
+                                              ? new Date(
+                                                  comment.createdAt,
+                                                ).toLocaleString("en-IN", {
+                                                  day: "2-digit",
+                                                  month: "short",
+                                                  year: "numeric",
+                                                  hour: "2-digit",
+                                                  minute: "2-digit",
+                                                })
+                                              : "Date unavailable"}
+                                          </p>
+                                        </div>
+                                        <p
+                                          className={styles.commentUsername}
+                                          onClick={() => {
+                                            router.push(
+                                              `/view_profile/${comment.userId?.username}`,
+                                            );
+                                          }}
+                                        >
+                                          @{comment.userId?.username || "User"}
+                                        </p>
+                                        <p className={styles.commentBody}>
+                                          {comment.body}
                                         </p>
                                       </div>
-                                      <p style={{ textDecoration: "italic" }}>
-                                        @{comment.userId?.username || "User"}
-                                      </p>
-                                      <p className={styles.commentBody}>
-                                        {comment.body}
-                                      </p>
                                     </div>
                                   ))
                                 ) : (

@@ -422,3 +422,28 @@ export const resetPassword = createAsyncThunk(
     }
   },
 );
+
+export const searchUsers = createAsyncThunk(
+  "auth/searchUsers",
+  async ({ q, cursor = null, append = false }, { rejectWithValue }) => {
+    try {
+      const response = await clientServer.get("/user/search", {
+        params: {
+          q,
+          ...(cursor ? { cursor } : {}),
+        },
+      });
+
+      return {
+        ...response.data,
+        q,
+        append,
+      };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Unable to search users. Please try again.",
+      );
+    }
+  },
+);

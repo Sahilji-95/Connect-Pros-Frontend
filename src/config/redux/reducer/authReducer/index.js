@@ -19,6 +19,7 @@ import {
   verifyResetOTP,
   resendResetOTP,
   resetPassword,
+  searchUsers,
 } from "../../action/authAction";
 
 const initialState = {
@@ -61,6 +62,13 @@ const initialState = {
   resendResetPasswordOtpError: null,
   resetPasswordMessage: "",
   resetPasswordError: null,
+  searchUsers: [],
+  searchQuery: "",
+  searchLoading: false,
+  searchMoreLoading: false,
+  searchHasMore: false,
+  searchNextCursor: null,
+  searchError: null,
 };
 
 const authSlice = createSlice({
@@ -372,6 +380,68 @@ const authSlice = createSlice({
         state.resetPasswordLoading = false;
         state.resetPasswordError =
           action.payload?.message || "Unable to reset password.";
+      })
+      .addCase(searchUsers.pending, (state, action) => {
+        const { q, append } = action.meta.arg;
+        const normalizedQuery = q.trim().toLowerCase();
+
+        if (append) {
+          state.searchMoreLoading = true;
+        } else {
+          state.searchQuery = normalizedQuery;
+          state.searchUsers = [];
+          state.searchLoading = true;
+          state.searchMoreLoading = false;
+          state.searchHasMore = false;
+          state.searchNextCursor = null;
+        }
+
+        state.searchError = null;
+      })
+
+      .addCase(searchUsers.fulfilled, (state, action) => {
+        const { q, append, users, hasMore, nextCursor } = action.payload;
+
+        // Ignore responses belonging to an older query.
+        if (q.trim().toLowerCase() !== state.searchQuery) {
+          return;
+        }
+
+        state.searchLoading = false;
+        state.searchMoreLoading = false;
+        state.searchError = null;
+
+        if (append) {
+          const existingIds = new Set(
+            state.searchUsers.map((user) => user._id),
+          );
+
+          const newUsers = users.filter((user) => !existingIds.has(user._id));
+
+          state.searchUsers.push(...newUsers);
+        } else {
+          state.searchUsers = users;
+        }
+
+        state.searchHasMore = hasMore;
+        state.searchNextCursor = nextCursor;
+      })
+
+      .addCase(searchUsers.rejected, (state, action) => {
+        const { q, append } = action.meta.arg;
+
+        if (q.trim().toLowerCase() !== state.searchQuery) {
+          return;
+        }
+
+        state.searchLoading = false;
+        state.searchMoreLoading = false;
+        state.searchError = action.payload || "Unable to search users.";
+
+        // Keep previously loaded results if loading another batch fails.
+        if (!append) {
+          state.searchHasMore = false;
+        }
       });
   },
 });

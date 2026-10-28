@@ -11,6 +11,57 @@ import {
 } from "@/config/redux/action/postAction";
 import styles from "./page.module.css";
 
+const ArrowLeftIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.8}
+    stroke="currentColor"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+    />
+  </svg>
+);
+
+const HeartIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.7}
+    stroke="currentColor"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+    />
+  </svg>
+);
+
+const CommentIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.7}
+    stroke="currentColor"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
+    />
+  </svg>
+);
+
 export default function PostDetailsPage() {
   const params = useParams();
   const router = useRouter();
@@ -74,7 +125,10 @@ export default function PostDetailsPage() {
   if (currentPostLoading) {
     return (
       <main className={styles.statusPage}>
-        <p className={styles.statusText}>Loading post...</p>
+        <div className={styles.loader}>
+          <span className={styles.spinner} aria-hidden="true" />
+          <p className={styles.statusText}>Loading post...</p>
+        </div>
       </main>
     );
   }
@@ -83,10 +137,14 @@ export default function PostDetailsPage() {
     return (
       <main className={styles.statusPage}>
         <div className={styles.errorCard}>
+          <div className={styles.errorIcon} aria-hidden="true">
+            !
+          </div>
           <h2>Post unavailable</h2>
           <p>{currentPostError || "Post not found"}</p>
           <button className={styles.backButton} onClick={() => router.back()}>
-            ← Go back
+            <ArrowLeftIcon />
+            <span>Go back</span>
           </button>
         </div>
       </main>
@@ -99,7 +157,8 @@ export default function PostDetailsPage() {
     <main className={styles.page}>
       <div className={styles.container}>
         <button className={styles.backButton} onClick={() => router.back()}>
-          ← Back
+          <ArrowLeftIcon />
+          <span>Back</span>
         </button>
 
         <article className={styles.postCard}>
@@ -120,13 +179,13 @@ export default function PostDetailsPage() {
               <span className={styles.username}>
                 @{author?.username || "unknown"}
               </span>
-
-              <span className={styles.date}>
-                {currentPost.createdAt
-                  ? new Date(currentPost.createdAt).toLocaleString("en-IN")
-                  : ""}
-              </span>
             </div>
+
+            <span className={styles.date}>
+              {currentPost.createdAt
+                ? new Date(currentPost.createdAt).toLocaleString("en-IN")
+                : ""}
+            </span>
           </div>
 
           <p className={styles.postBody}>{currentPost.body}</p>
@@ -153,19 +212,26 @@ export default function PostDetailsPage() {
               }`}
               onClick={handleLike}
             >
-              ♡ {currentPost.isLiked ? "Unlike" : "Like"}
+              <HeartIcon />
+              <span>{currentPost.isLiked ? "Unlike" : "Like"}</span>
             </button>
 
             <button
               className={styles.actionButton}
               onClick={() => document.getElementById("comment-input")?.focus()}
             >
-              ◯ Comment
+              <CommentIcon />
+              <span>Comment</span>
             </button>
           </div>
 
           <section className={styles.commentsSection}>
-            <h3 className={styles.commentsTitle}>Comments</h3>
+            <h3 className={styles.commentsTitle}>
+              Comments
+              <span className={styles.commentsCount}>
+                {comment?.length ?? 0}
+              </span>
+            </h3>
 
             <form onSubmit={handleComment} className={styles.commentForm}>
               <textarea
@@ -184,28 +250,62 @@ export default function PostDetailsPage() {
                 </p>
               )}
 
-              <button
-                className={styles.submitButton}
-                type="submit"
-                disabled={commentLoading || !commentText.trim()}
-              >
-                {commentLoading ? "Posting..." : "Post comment"}
-              </button>
+              <div className={styles.formFooter}>
+                <span className={styles.charCount}>
+                  {commentText.length}/2000
+                </span>
+
+                <button
+                  className={styles.submitButton}
+                  type="submit"
+                  disabled={commentLoading || !commentText.trim()}
+                >
+                  {commentLoading ? "Posting..." : "Post comment"}
+                </button>
+              </div>
             </form>
 
             <div className={styles.commentsList}>
               {comment?.length ? (
                 comment.map((item) => (
                   <div className={styles.commentItem} key={item._id}>
-                    <strong className={styles.commentAuthor}>
-                      {item.userId?.name || "User"}
-                    </strong>
+                    <div className={styles.commentAvatar} aria-hidden="true">
+                      {item.userId?.profilePicture ? (
+                        <img
+                          className={styles.commentAvatar}
+                          src={item.userId.profilePicture}
+                          alt={item.userId?.name || "User"}
+                        />
+                      ) : (
+                        <div
+                          className={styles.commentAvatar}
+                          aria-hidden="true"
+                        >
+                          {(item.userId?.name || "U").charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
 
-                    <p className={styles.commentUsername}>
-                      @{item.userId?.username || "user"}
-                    </p>
+                    <div className={styles.commentContent}>
+                      <div className={styles.commentHeader}>
+                        <strong className={styles.commentAuthor}>
+                          {item.userId?.name || "User"}
+                        </strong>
 
-                    <p className={styles.commentBody}>{item.body}</p>
+                        <span
+                          className={styles.commentUsername}
+                          onClick={() => {
+                            router.push(
+                              `/view_profile/${item.userId?.username}`,
+                            );
+                          }}
+                        >
+                          @{item.userId?.username || "user"}
+                        </span>
+                      </div>
+
+                      <p className={styles.commentBody}>{item.body}</p>
+                    </div>
                   </div>
                 ))
               ) : (

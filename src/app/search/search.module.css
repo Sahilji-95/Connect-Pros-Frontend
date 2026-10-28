@@ -181,3 +181,231 @@
     gap: 14px;
   }
 }
+
+/* Global username search */
+
+.searchToolbar {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto 32px;
+}
+
+.searchInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  border: 1px solid #30363d;
+  border-radius: 14px;
+  background: #161b22;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.searchInputWrapper:focus-within {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 15%);
+}
+
+.searchIcon {
+  flex-shrink: 0;
+  color: #8b949e;
+}
+
+.searchInput {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #e6edf3;
+  font: inherit;
+  font-size: 15px;
+}
+
+.searchInput::placeholder {
+  color: #8b949e;
+}
+
+.searchInput::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+.clearSearch {
+  flex-shrink: 0;
+  padding: 6px 9px;
+  border: none;
+  border-radius: 7px;
+  background: #30363d;
+  color: #c9d1d9;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.clearSearch:hover {
+  background: #484f58;
+}
+
+.searchHint {
+  margin: 10px 2px 0;
+  color: #8b949e;
+  font-size: 13px;
+}
+
+.resultsSection {
+  width: 100%;
+}
+
+.resultsHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: #e6edf3;
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.showMoreWrapper {
+  display: flex;
+  justify-content: center;
+  margin: 28px 0 12px;
+}
+
+.showMoreButton,
+.retryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 0 24px;
+  border: 1px solid #6366f1;
+  border-radius: 10px;
+  background: #6366f1;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.showMoreButton:hover:not(:disabled),
+.retryButton:hover {
+  background: #5558e8;
+  transform: translateY(-1px);
+}
+
+.showMoreButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.statusState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 180px;
+  padding: 28px 16px;
+  color: #8b949e;
+  text-align: center;
+}
+
+.statusState p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.statusState h3 {
+  margin: 0;
+  color: #e6edf3;
+}
+
+.spinner {
+  flex-shrink: 0;
+  animation: searchSpin 0.8s linear infinite;
+}
+
+@keyframes searchSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.inlineError {
+  margin: 18px 0;
+  color: #f85149;
+  font-size: 14px;
+  text-align: center;
+}
+
+.endMessage {
+  margin: 24px 0;
+  color: #8b949e;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Search result cards reuse the existing userCard styles. */
+.viewButton {
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.viewButton:focus-visible,
+.showMoreButton:focus-visible,
+.clearSearch:focus-visible,
+.retryButton:focus-visible {
+  outline: 2px solid #a5a6ff;
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .searchToolbar {
+    margin-bottom: 24px;
+  }
+
+  .searchInputWrapper {
+    min-height: 48px;
+    padding: 0 12px;
+    border-radius: 11px;
+  }
+
+  .searchInput {
+    font-size: 14px;
+  }
+
+  .sectionTitle {
+    font-size: 18px;
+  }
+
+  .showMoreButton {
+    width: 100%;
+    max-width: 320px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+
+  .searchInputWrapper,
+  .showMoreButton {
+    transition: none;
+  }
+}
