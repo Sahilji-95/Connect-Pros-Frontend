@@ -146,3 +146,20 @@ export const getPostsByUsername = createAsyncThunk(
     }
   },
 );
+
+export const getPostById = createAsyncThunk(
+  "post/getPostById",
+  async (postId, thunkAPI) => {
+    try {
+      const response = await clientServer.get(
+        `/post/${encodeURIComponent(postId)}`,
+      );
+
+      return response.data.post;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Failed to fetch post",
+      );
+    }
+  },
+);

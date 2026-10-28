@@ -6,6 +6,7 @@ import {
   createPost,
   deletePost,
   incrementPostLike,
+  getPostById,
 } from "../../action/postAction";
 
 const initialState = {
@@ -22,6 +23,9 @@ const initialState = {
   profilePostsError: null,
   createPostLoading: false,
   createPostError: null,
+  currentPost: null,
+  currentPostLoading: false,
+  currentPostError: null,
 };
 
 const postSlice = createSlice({
@@ -99,6 +103,11 @@ const postSlice = createSlice({
       .addCase(incrementPostLike.fulfilled, (state, action) => {
         const { post_id, likes, isLiked } = action.payload;
 
+        if (state.currentPost?._id === post_id) {
+          state.currentPost.likes = likes;
+          state.currentPost.isLiked = isLiked;
+        }
+
         const post = state.posts.find((item) => item._id === post_id);
 
         if (post) {
@@ -114,6 +123,21 @@ const postSlice = createSlice({
           profilePost.likes = likes;
           profilePost.isLiked = isLiked;
         }
+      })
+
+      .addCase(getPostById.pending, (state) => {
+        state.currentPostLoading = true;
+        state.currentPostError = null;
+        state.currentPost = null;
+      })
+      .addCase(getPostById.fulfilled, (state, action) => {
+        state.currentPostLoading = false;
+        state.currentPost = action.payload;
+      })
+      .addCase(getPostById.rejected, (state, action) => {
+        state.currentPostLoading = false;
+        state.currentPostError = action.payload || "Failed to fetch post";
+        state.currentPost = null;
       });
   },
 });

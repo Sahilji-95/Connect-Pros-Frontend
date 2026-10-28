@@ -179,7 +179,18 @@ export default function Dashboard() {
                 .filter((post) => post && post.userId)
                 .map((post) => {
                   return (
-                    <div className={styles.singleCard} key={post._id}>
+                    <div
+                      className={styles.singleCard}
+                      key={post._id}
+                      onClick={() => router.push(`/post/${post._id}`)}
+                      role="link"
+                      tabIndex={0}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          router.push(`/post/${post._id}`);
+                        }
+                      }}
+                    >
                       <div className={styles.singleCardProfile}>
                         <img
                           className={styles.userProfile}
@@ -242,7 +253,10 @@ export default function Dashboard() {
                             </div>
                           )}
 
-                          <div className={styles.option}>
+                          <div
+                            className={styles.option}
+                            onClick={(event) => event.stopPropagation()}
+                          >
                             <div
                               className={`${styles.singleOption} ${
                                 post.isLiked ? styles.liked : ""
