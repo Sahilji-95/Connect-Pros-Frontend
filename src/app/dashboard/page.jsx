@@ -225,7 +225,8 @@ export default function Dashboard() {
                           </div>
                           <p
                             className={styles.username}
-                            onClick={() => {
+                            onClick={(event) => {
+                              event.stopPropagation();
                               router.push(
                                 `/view_profile/${post.userId.username}`,
                               );

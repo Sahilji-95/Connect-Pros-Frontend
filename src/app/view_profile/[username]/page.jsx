@@ -349,21 +349,20 @@ export default function ViewProfile() {
                   className={styles.timelineItem}
                   key={work._id || `${work.pastWork}-${index}`}
                 >
-                  <h3>{work.pastWork}</h3>
-
-                  {work.position && (
-                    <p className={styles.position}>{work.position}</p>
-                  )}
-
-                  {work.years != null && (
-                    <p className={styles.duration}>
-                      {work.years} {Number(work.years) === 1 ? "year" : "years"}
-                    </p>
-                  )}
-
                   <span className={styles.experienceLabel}>
                     PROFESSIONAL EXPERIENCE
                   </span>
+                  <h3>Company - {work.pastWork}</h3>
+
+                  {work.position && (
+                    <p className={styles.position}>
+                      Position - {work.position}
+                    </p>
+                  )}
+
+                  {work.years != null && (
+                    <p className={styles.duration}>Duration - {work.years} </p>
+                  )}
                 </article>
               ))}
             </div>
