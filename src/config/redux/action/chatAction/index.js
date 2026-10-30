@@ -8,7 +8,10 @@ export const getConversations = createAsyncThunk(
     try {
       const response = await clientServer.get("/chat/conversations");
 
-      return response.data.conversations;
+      return {
+        conversations: response.data.conversations || [],
+        totalUnreadCount: response.data.totalUnreadCount ?? 0,
+      };
     } catch (error) {
       return thunkAPI.rejectWithValue(
         error.response?.data || {

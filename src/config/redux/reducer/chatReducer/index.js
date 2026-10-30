@@ -11,6 +11,12 @@ const initialState = {
 
   messagesByConversation: {},
 
+  // Unread message counts
+  totalUnreadCount: 0,
+
+  // Online users
+  onlineUserIds: [],
+  lastSeenByUser: {},
   conversationsLoading: false,
   messagesLoading: false,
   olderMessagesLoading: false,
@@ -44,6 +50,14 @@ const mergeMessages = (existing = [], incoming = []) => {
   return sortMessagesOldestFirst([...messagesMap.values()]);
 };
 
+const sortConversations = (conversations) => {
+  conversations.sort(
+    (a, b) =>
+      new Date(b.lastMessageAt || b.updatedAt || 0).getTime() -
+      new Date(a.lastMessageAt || a.updatedAt || 0).getTime(),
+  );
+};
+
 const chatSlice = createSlice({
   name: "chat",
   initialState,
@@ -58,13 +72,48 @@ const chatSlice = createSlice({
       state.activeConversationId = null;
     },
 
+    // Update online users received from Socket.IO.
+    setOnlineUsers(state, action) {
+      state.onlineUserIds = action.payload || [];
+    },
+
+    // Update a single user's online/offline status.
+    updateUserPresence(state, action) {
+      const { userId, online, lastSeen } = action.payload || {};
+
+      if (!userId) return;
+
+      const exists = state.onlineUserIds.includes(userId);
+
+      if (online && !exists) {
+        state.onlineUserIds.push(userId);
+      }
+
+      if (online) {
+        delete state.lastSeenByUser[userId];
+      } else {
+        state.onlineUserIds = state.onlineUserIds.filter((id) => id !== userId);
+
+        if (lastSeen) {
+          state.lastSeenByUser[userId] = lastSeen;
+        }
+      }
+    },
+
     // Used when a new Socket.IO message arrives.
     addIncomingMessage(state, action) {
-      const { conversationId, message } = action.payload;
+      const {
+        conversationId,
+        message,
+        incrementUnread = false,
+      } = action.payload;
 
       if (!conversationId || !message?._id) return;
 
       const existing = state.messagesByConversation[conversationId] || [];
+
+      // Prevent duplicate message processing.
+      const alreadyExists = existing.some((item) => item._id === message._id);
 
       state.messagesByConversation[conversationId] = mergeMessages(existing, [
         message,
@@ -77,13 +126,16 @@ const chatSlice = createSlice({
       if (conversation) {
         conversation.lastMessage = message;
         conversation.lastMessageAt = message.createdAt;
+
+        // Increment only for a genuinely new incoming unread message.
+        if (incrementUnread && !alreadyExists) {
+          conversation.unreadCount = (conversation.unreadCount || 0) + 1;
+
+          state.totalUnreadCount += 1;
+        }
       }
 
-      state.conversations.sort(
-        (a, b) =>
-          new Date(b.lastMessageAt || b.updatedAt || 0).getTime() -
-          new Date(a.lastMessageAt || a.updatedAt || 0).getTime(),
-      );
+      sortConversations(state.conversations);
     },
 
     // Use when a conversation list needs to be reset.
@@ -105,10 +157,32 @@ const chatSlice = createSlice({
         state.conversationsLoading = true;
         state.error = null;
       })
+
       .addCase(getConversations.fulfilled, (state, action) => {
         state.conversationsLoading = false;
-        state.conversations = action.payload;
+
+        // Backward compatibility with the old array response.
+        const payload = action.payload;
+
+        if (Array.isArray(payload)) {
+          state.conversations = payload;
+
+          state.totalUnreadCount = payload.reduce(
+            (total, conversation) => total + (conversation.unreadCount || 0),
+            0,
+          );
+        } else {
+          state.conversations = payload?.conversations || [];
+
+          state.totalUnreadCount =
+            payload?.totalUnreadCount ??
+            state.conversations.reduce(
+              (total, conversation) => total + (conversation.unreadCount || 0),
+              0,
+            );
+        }
       })
+
       .addCase(getConversations.rejected, (state, action) => {
         state.conversationsLoading = false;
         state.error =
@@ -119,6 +193,7 @@ const chatSlice = createSlice({
       .addCase(createOrGetConversation.pending, (state) => {
         state.error = null;
       })
+
       .addCase(createOrGetConversation.fulfilled, (state, action) => {
         const conversation = action.payload;
 
@@ -132,7 +207,10 @@ const chatSlice = createSlice({
             ...conversation,
           };
         } else {
-          state.conversations.unshift(conversation);
+          state.conversations.unshift({
+            ...conversation,
+            unreadCount: conversation.unreadCount || 0,
+          });
         }
 
         state.activeConversationId = conversation._id;
@@ -141,12 +219,9 @@ const chatSlice = createSlice({
           state.messagesByConversation[conversation._id] = [];
         }
 
-        state.conversations.sort(
-          (a, b) =>
-            new Date(b.lastMessageAt || b.updatedAt || 0).getTime() -
-            new Date(a.lastMessageAt || a.updatedAt || 0).getTime(),
-        );
+        sortConversations(state.conversations);
       })
+
       .addCase(createOrGetConversation.rejected, (state, action) => {
         state.error = action.payload?.message || "Failed to open conversation";
       })
@@ -163,6 +238,7 @@ const chatSlice = createSlice({
 
         state.error = null;
       })
+
       .addCase(getConversationMessages.fulfilled, (state, action) => {
         const { conversationId, messages, hasMore, nextCursor, isOlderPage } =
           action.payload;
@@ -181,9 +257,9 @@ const chatSlice = createSlice({
         state.hasMoreByConversation[conversationId] = hasMore;
         state.nextCursorByConversation[conversationId] = nextCursor;
 
-        // isOlderPage is returned for UI/debugging if needed.
         void isOlderPage;
       })
+
       .addCase(getConversationMessages.rejected, (state, action) => {
         state.messagesLoading = false;
         state.olderMessagesLoading = false;
@@ -197,6 +273,8 @@ export const {
   setActiveConversation,
   clearActiveConversation,
   addIncomingMessage,
+  setOnlineUsers,
+  updateUserPresence,
   clearChatError,
   resetChatState,
 } = chatSlice.actions;

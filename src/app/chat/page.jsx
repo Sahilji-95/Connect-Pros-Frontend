@@ -9,7 +9,6 @@ import React, {
   useState,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
 import { useSearchParams } from "next/navigation";
 
 import DashboardLayout from "@/layout/DashboardLayout/Index";
@@ -63,6 +62,40 @@ const formatListTime = (iso) => {
       });
 };
 
+const formatLastSeen = (value) => {
+  if (!value) return "Offline";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "Offline";
+
+  const diff = Math.max(0, Date.now() - date.getTime());
+  const minutes = Math.floor(diff / 60000);
+
+  if (minutes < 1) return "Last seen just now";
+
+  if (minutes < 60) {
+    return `Last seen ${minutes}m ago`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+
+  if (hours < 24) {
+    return `Last seen ${hours}h ago`;
+  }
+
+  const days = Math.floor(hours / 24);
+
+  if (days < 7) {
+    return `Last seen ${days}d ago`;
+  }
+
+  return `Last seen ${date.toLocaleDateString([], {
+    day: "2-digit",
+    month: "short",
+  })}`;
+};
+
 const getOtherParticipant = (conversation, currentUserId) => {
   const participants = conversation?.participants || [];
 
@@ -98,6 +131,8 @@ function ChatContent() {
     olderMessagesLoading,
     hasMoreByConversation,
     nextCursorByConversation,
+    onlineUserIds,
+    lastSeenByUser,
     error,
   } = useSelector((state) => state.chat);
 
@@ -110,6 +145,7 @@ function ChatContent() {
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const messagesContainerRef = useRef(null);
+
   const activeConversationRef = useRef(null);
   const pendingReadRef = useRef(new Set());
   const sendingRef = useRef(false);
@@ -127,10 +163,6 @@ function ChatContent() {
     return activeId ? messagesByConversation[activeId] || [] : [];
   }, [activeId, messagesByConversation]);
 
-  const activeConversation = useMemo(() => {
-    return conversations.find((conversation) => conversation._id === activeId);
-  }, [conversations, activeId]);
-
   const normalizedConversations = useMemo(() => {
     if (!currentUserId) return [];
 
@@ -142,16 +174,25 @@ function ChatContent() {
           return null;
         }
 
+        const otherUserId = getId(otherUser);
+
         return {
           ...conversation,
-          user: otherUser,
+
+          user: {
+            ...otherUser,
+            lastSeen: lastSeenByUser[otherUserId] || otherUser.lastSeen || null,
+          },
+
           lastMessage: conversation.lastMessage?.text || "",
-          unread: 0,
-          online: false,
+
+          unread: conversation.unreadCount || 0,
+
+          online: onlineUserIds.includes(otherUserId),
         };
       })
       .filter(Boolean);
-  }, [conversations, currentUserId]);
+  }, [conversations, currentUserId, onlineUserIds, lastSeenByUser]);
 
   const activeChat = normalizedConversations.find(
     (conversation) => conversation._id === activeId,
@@ -173,18 +214,21 @@ function ChatContent() {
     });
   }, [normalizedConversations, search]);
 
+  // Fetch user profile
   useEffect(() => {
     if (!profileFetched || !currentUserId) {
       dispatch(getAboutUser());
     }
   }, [dispatch, profileFetched, currentUserId]);
 
+  // Fetch conversations
   useEffect(() => {
     if (!currentUserId) return;
 
     dispatch(getConversations());
   }, [dispatch, currentUserId]);
 
+  // Mark received messages as read
   const markMessagesRead = useCallback(
     (conversationId, conversationMessages) => {
       if (!conversationId || !currentUserId) return;
@@ -223,18 +267,36 @@ function ChatContent() {
     [currentUserId],
   );
 
+  // Socket connection, presence and real-time messages
   useEffect(() => {
     if (!currentUserId) return;
 
     const socket = getChatSocket();
 
+    const emitActiveConversation = () => {
+      const selectedId = activeConversationRef.current;
+
+      if (
+        socket.connected &&
+        selectedId &&
+        document.visibilityState === "visible"
+      ) {
+        socket.emit("chat:active", {
+          conversationId: selectedId,
+        });
+      }
+    };
+
     const handleConnect = () => {
       setSocketConnected(true);
+
       dispatch(getConversations());
 
       const selectedId = activeConversationRef.current;
 
       if (selectedId) {
+        emitActiveConversation();
+
         dispatch(
           getConversationMessages({
             conversationId: selectedId,
@@ -249,9 +311,11 @@ function ChatContent() {
 
     const handleConnectError = (error) => {
       console.error("Chat socket connection error:", error.message);
+
       setSocketConnected(false);
     };
 
+    // Incoming messages
     const handleIncomingMessage = (payload) => {
       const message = payload?.message || payload;
 
@@ -271,6 +335,7 @@ function ChatContent() {
       dispatch(getConversations());
     };
 
+    // Read receipts
     const handleReadReceipt = (payload) => {
       const conversationId = getId(payload?.conversationId);
 
@@ -283,11 +348,26 @@ function ChatContent() {
       }
     };
 
+    // Browser tab visibility
+    const handleVisibilityChange = () => {
+      if (!socket.connected) return;
+
+      if (document.visibilityState === "hidden") {
+        socket.emit("chat:inactive");
+      } else {
+        emitActiveConversation();
+      }
+    };
+
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
     socket.on("connect_error", handleConnectError);
+
     socket.on("chat:message", handleIncomingMessage);
+
     socket.on("chat:read_receipt", handleReadReceipt);
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     if (!socket.connected) {
       socket.connect();
@@ -296,24 +376,39 @@ function ChatContent() {
     }
 
     return () => {
+      socket.emit("chat:inactive");
+
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
       socket.off("connect_error", handleConnectError);
+
       socket.off("chat:message", handleIncomingMessage);
+
       socket.off("chat:read_receipt", handleReadReceipt);
 
-      socket.disconnect();
-      setSocketConnected(false);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+
+      // Do not disconnect the shared socket here.
     };
   }, [currentUserId, dispatch]);
 
+  // Select conversation
   const handleSelectConversation = useCallback(
     async (conversationId) => {
       if (!conversationId) return;
 
       activeConversationRef.current = conversationId;
 
+      const socket = getChatSocket();
+
+      if (socket.connected && document.visibilityState === "visible") {
+        socket.emit("chat:active", {
+          conversationId,
+        });
+      }
+
       dispatch(setActiveConversation(conversationId));
+
       setSendError("");
       setText("");
 
@@ -331,8 +426,11 @@ function ChatContent() {
     [dispatch],
   );
 
+  // Open conversation from URL
   useEffect(() => {
-    if (!targetConversationId || conversations.length === 0) return;
+    if (!targetConversationId || conversations.length === 0) {
+      return;
+    }
 
     const conversationExists = conversations.some(
       (conversation) => conversation._id === targetConversationId,
@@ -340,22 +438,38 @@ function ChatContent() {
 
     if (!conversationExists) return;
 
-    if (activeConversationRef.current === targetConversationId) return;
+    if (activeConversationRef.current === targetConversationId) {
+      return;
+    }
 
     handleSelectConversation(targetConversationId);
   }, [targetConversationId, conversations, handleSelectConversation]);
+
+  // Back button
   const handleBack = () => {
+    const socket = getChatSocket();
+
+    if (socket.connected) {
+      socket.emit("chat:inactive");
+    }
+
     activeConversationRef.current = null;
+
     dispatch(clearActiveConversation());
+
     setSendError("");
   };
 
+  // Mark messages read when active conversation messages load
   useEffect(() => {
     if (!activeId || !socketConnected) return;
+
+    if (document.visibilityState !== "visible") return;
 
     markMessagesRead(activeId, messages);
   }, [activeId, messages, socketConnected, markMessagesRead]);
 
+  // Scroll to latest message
   useEffect(() => {
     if (!activeId || olderMessagesLoading) return;
 
@@ -365,6 +479,7 @@ function ChatContent() {
     });
   }, [activeId, messages.length, olderMessagesLoading]);
 
+  // Load older messages
   const handleLoadOlderMessages = async () => {
     if (
       !activeId ||
@@ -382,6 +497,7 @@ function ChatContent() {
     loadingOlderRef.current = true;
 
     const container = messagesContainerRef.current;
+
     const previousHeight = container?.scrollHeight || 0;
     const previousTop = container?.scrollTop || 0;
 
@@ -408,6 +524,7 @@ function ChatContent() {
     }
   };
 
+  // Send message
   const handleSend = () => {
     const clean = text.trim();
 
@@ -423,6 +540,7 @@ function ChatContent() {
     }
 
     sendingRef.current = true;
+
     setSending(true);
     setSendError("");
 
@@ -437,6 +555,7 @@ function ChatContent() {
       },
       (error, ack) => {
         sendingRef.current = false;
+
         setSending(false);
 
         if (
@@ -450,6 +569,7 @@ function ChatContent() {
               ack?.error ||
               "Message could not be sent. Please try again.",
           );
+
           return;
         }
 
@@ -464,13 +584,14 @@ function ChatContent() {
           );
         }
 
-        setText((current) => (current === clean ? "" : current));
+        setText("");
 
         inputRef.current?.focus();
       },
     );
   };
 
+  // Enter to send
   const handleKeyDown = (event) => {
     if (
       event.key === "Enter" &&
@@ -490,6 +611,7 @@ function ChatContent() {
             activeId ? styles.windowOpen : ""
           }`}
         >
+          {/* Conversation list */}
           <aside className={styles.listPanel}>
             <div className={styles.listHeader}>
               <h2 className={styles.title}>Messages</h2>
@@ -562,9 +684,17 @@ function ChatContent() {
                     </div>
 
                     <div className={styles.conversationBottom}>
-                      <p className={styles.lastMessage}>
-                        {conversation.lastMessage || "Start a conversation"}
-                      </p>
+                      <div>
+                        <p className={styles.lastMessage}>
+                          {conversation.lastMessage || "Start a conversation"}
+                        </p>
+
+                        <p className={styles.headerStatus}>
+                          {conversation.online
+                            ? "Online"
+                            : formatLastSeen(conversation.user.lastSeen)}
+                        </p>
+                      </div>
 
                       {conversation.unread > 0 && (
                         <span className={styles.unreadBadge}>
@@ -578,6 +708,7 @@ function ChatContent() {
             </div>
           </aside>
 
+          {/* Chat window */}
           <section className={styles.windowPanel}>
             {!activeChat ? (
               <div className={styles.placeholder}>
@@ -602,6 +733,7 @@ function ChatContent() {
               </div>
             ) : (
               <>
+                {/* Chat header */}
                 <header className={styles.windowHeader}>
                   <button
                     className={styles.backButton}
@@ -629,13 +761,16 @@ function ChatContent() {
                     </p>
 
                     <p className={styles.headerStatus}>
-                      {socketConnected
-                        ? `@${activeChat.user.username || "user"}`
-                        : "Connecting..."}
+                      {!socketConnected
+                        ? "Connecting..."
+                        : activeChat.online
+                          ? "Online"
+                          : formatLastSeen(activeChat.user.lastSeen)}
                     </p>
                   </div>
                 </header>
 
+                {/* Messages */}
                 <div className={styles.messages} ref={messagesContainerRef}>
                   {hasMoreByConversation[activeId] && (
                     <div className={styles.loadOlderWrapper}>
@@ -692,6 +827,7 @@ function ChatContent() {
                   <div ref={bottomRef} />
                 </div>
 
+                {/* Message composer */}
                 <footer className={styles.composer}>
                   <textarea
                     ref={inputRef}

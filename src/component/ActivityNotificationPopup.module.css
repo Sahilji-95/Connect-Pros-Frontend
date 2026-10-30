@@ -1,0 +1,120 @@
+.popupWrapper {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 360px;
+  max-width: calc(100vw - 40px);
+  z-index: 10000;
+  animation: popupEnter 0.3s ease;
+}
+
+.popup {
+  padding: 16px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.senderInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #30363d;
+}
+
+.content {
+  min-width: 0;
+  flex: 1;
+}
+
+.title {
+  margin: 0 0 5px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.message {
+  margin: 0;
+  color: #c9d1d9;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.senderName {
+  display: block;
+  margin-top: 5px;
+  color: #8b949e;
+  font-size: 12px;
+}
+
+.closeButton {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #8b949e;
+  font-size: 23px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  color: #fff;
+}
+
+.viewButton {
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #6366f1;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.viewButton:hover {
+  background: #4f46e5;
+}
+
+@keyframes popupEnter {
+  from {
+    opacity: 0;
+    transform: translateX(25px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .popupWrapper {
+    top: 12px;
+    right: 12px;
+    max-width: calc(100vw - 24px);
+  }
+}
