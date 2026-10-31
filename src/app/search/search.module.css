@@ -1,10 +1,28 @@
+/* =========================================
+   CONNECT PROS - SEARCH PAGE
+   GitHub Dark Theme + Indigo
+========================================= */
+
 .searchPage {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-2: #21262d;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-strong: #f0f6fc;
+  --text-muted: #8b949e;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+
   width: 100%;
   min-height: 100vh;
   padding: 28px;
-  color: #e6edf3;
-  background: #0d1117;
+  color: var(--text);
+  background: var(--bg);
+  box-sizing: border-box;
 }
+
+/* ---------- Header ---------- */
 
 .header {
   margin-bottom: 28px;
@@ -15,174 +33,18 @@
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.5px;
-  color: #f0f6fc;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
 }
 
 .subtitle {
   margin: 8px 0 0;
-  color: #8b949e;
+  color: var(--text-muted);
   font-size: 14px;
   line-height: 1.6;
 }
 
-.userGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
-}
-
-.userCard {
-  min-width: 0;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 14px;
-  transition:
-    border-color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.userCard:hover {
-  border-color: #6366f1;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 20%);
-}
-
-.cardTop {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
-
-.avatarWrapper {
-  width: 58px;
-  height: 58px;
-  flex-shrink: 0;
-  padding: 2px;
-  border: 2px solid #6366f1;
-  border-radius: 50%;
-}
-
-.avatar {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  background: #21262d;
-}
-
-.userInfo {
-  min-width: 0;
-}
-
-.name {
-  margin: 0;
-  color: #f0f6fc;
-  font-size: 16px;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.username {
-  margin: 5px 0 0;
-  color: #a5a9f9;
-  font-size: 13px;
-  overflow-wrap: anywhere;
-}
-
-.postSection {
-  margin-top: 22px;
-  padding: 14px;
-  background: #0d1117;
-  border: 1px solid #30363d;
-  border-radius: 10px;
-  flex: 1;
-}
-
-.postLabel {
-  display: block;
-  margin-bottom: 8px;
-  color: #8b949e;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-}
-
-.currentPost {
-  margin: 0;
-  color: #c9d1d9;
-  font-size: 14px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-}
-
-.viewButton {
-  width: 100%;
-  margin-top: 16px;
-  padding: 11px 14px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  color: #ffffff;
-  background: #6366f1;
-  border: 1px solid #6366f1;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.viewButton:hover {
-  background: #4f46e5;
-  border-color: #4f46e5;
-}
-
-.emptyState {
-  padding: 48px 20px;
-  margin-top: 20px;
-  text-align: center;
-  background: #161b22;
-  border: 1px dashed #30363d;
-  border-radius: 12px;
-}
-
-.emptyState h3 {
-  margin: 0 0 8px;
-  color: #f0f6fc;
-  font-size: 18px;
-}
-
-.emptyState p {
-  margin: 0;
-  color: #8b949e;
-  font-size: 14px;
-}
-
-@media (max-width: 600px) {
-  .searchPage {
-    padding: 18px 14px;
-  }
-
-  .title {
-    font-size: 22px;
-  }
-
-  .userGrid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-}
-
-/* Global username search */
+/* ---------- Search Toolbar ---------- */
 
 .searchToolbar {
   width: 100%;
@@ -197,38 +59,40 @@
   width: 100%;
   min-height: 54px;
   padding: 0 16px;
-  border: 1px solid #30363d;
+  border: 1px solid var(--border);
   border-radius: 14px;
-  background: #161b22;
+  background: var(--surface);
+  box-sizing: border-box;
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
 }
 
 .searchInputWrapper:focus-within {
-  border-color: #6366f1;
+  border-color: var(--accent);
   box-shadow: 0 0 0 3px rgb(99 102 241 / 15%);
 }
 
 .searchIcon {
   flex-shrink: 0;
-  color: #8b949e;
+  color: var(--text-muted);
 }
 
 .searchInput {
   flex: 1;
   width: 100%;
   min-width: 0;
+  padding: 0;
   border: none;
   outline: none;
   background: transparent;
-  color: #e6edf3;
+  color: var(--text);
   font: inherit;
   font-size: 15px;
 }
 
 .searchInput::placeholder {
-  color: #8b949e;
+  color: var(--text-muted);
 }
 
 .searchInput::-webkit-search-cancel-button {
@@ -240,10 +104,11 @@
   padding: 6px 9px;
   border: none;
   border-radius: 7px;
-  background: #30363d;
+  background: var(--surface-2);
   color: #c9d1d9;
   font-size: 12px;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .clearSearch:hover {
@@ -252,27 +117,203 @@
 
 .searchHint {
   margin: 10px 2px 0;
-  color: #8b949e;
+  color: var(--text-muted);
   font-size: 13px;
+  line-height: 1.5;
 }
+
+/* ---------- Results Section ---------- */
 
 .resultsSection {
   width: 100%;
+  min-width: 0;
 }
 
 .resultsHeading {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 18px;
 }
 
 .sectionTitle {
   margin: 0;
-  color: #e6edf3;
+  color: var(--text);
   font-size: 20px;
   font-weight: 650;
+  overflow-wrap: anywhere;
 }
+
+/* ---------- User Grid ---------- */
+
+.userGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+/* ---------- User Card ---------- */
+
+.userCard {
+  min-width: 0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.userCard:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 20%);
+}
+
+/* ---------- User Profile ---------- */
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.avatarWrapper {
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  padding: 2px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  background: var(--surface-2);
+}
+
+.userInfo {
+  min-width: 0;
+  flex: 1;
+}
+
+.name {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.username {
+  margin: 5px 0 0;
+  color: #a5a9f9;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Post Preview ---------- */
+
+.postSection {
+  margin-top: 22px;
+  padding: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.postLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.currentPost {
+  margin: 0;
+  color: #c9d1d9;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ---------- View Profile Button ---------- */
+
+.viewButton {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 16px;
+  padding: 11px 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.viewButton:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+/* ---------- Empty State ---------- */
+
+.emptyState {
+  padding: 48px 20px;
+  margin-top: 20px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.emptyState h3 {
+  margin: 0 0 8px;
+  color: var(--text-strong);
+  font-size: 18px;
+}
+
+.emptyState p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ---------- Show More ---------- */
 
 .showMoreWrapper {
   display: flex;
@@ -282,15 +323,15 @@
 
 .showMoreButton,
 .retryButton {
+  min-height: 44px;
+  padding: 0 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
-  min-height: 44px;
-  padding: 0 24px;
-  border: 1px solid #6366f1;
+  border: 1px solid var(--accent);
   border-radius: 10px;
-  background: #6366f1;
+  background: var(--accent);
   color: #fff;
   font: inherit;
   font-weight: 600;
@@ -303,7 +344,7 @@
 
 .showMoreButton:hover:not(:disabled),
 .retryButton:hover {
-  background: #5558e8;
+  background: var(--accent-hover);
   transform: translateY(-1px);
 }
 
@@ -311,6 +352,8 @@
   cursor: not-allowed;
   opacity: 0.65;
 }
+
+/* ---------- Loading / Status ---------- */
 
 .statusState {
   display: flex;
@@ -320,18 +363,19 @@
   gap: 12px;
   min-height: 180px;
   padding: 28px 16px;
-  color: #8b949e;
+  color: var(--text-muted);
   text-align: center;
 }
 
 .statusState p {
   margin: 0;
   font-size: 14px;
+  line-height: 1.6;
 }
 
 .statusState h3 {
   margin: 0;
-  color: #e6edf3;
+  color: var(--text);
 }
 
 .spinner {
@@ -350,21 +394,17 @@
   color: #f85149;
   font-size: 14px;
   text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .endMessage {
   margin: 24px 0;
-  color: #8b949e;
+  color: var(--text-muted);
   font-size: 13px;
   text-align: center;
 }
 
-/* Search result cards reuse the existing userCard styles. */
-.viewButton {
-  font: inherit;
-  text-align: center;
-  cursor: pointer;
-}
+/* ---------- Focus Accessibility ---------- */
 
 .viewButton:focus-visible,
 .showMoreButton:focus-visible,
@@ -374,7 +414,66 @@
   outline-offset: 3px;
 }
 
+@media (max-width: 768px) {
+  .searchPage {
+    padding: 24px 18px;
+  }
+
+  .header {
+    margin-bottom: 24px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .userGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .userCard {
+    padding: 17px;
+  }
+
+  .avatarWrapper {
+    width: 52px;
+    height: 52px;
+  }
+
+  .cardTop {
+    gap: 11px;
+  }
+
+  .postSection {
+    margin-top: 17px;
+    padding: 12px;
+  }
+}
+
 @media (max-width: 600px) {
+  .searchPage {
+    padding: 18px 14px 40px;
+  }
+
+  /* Header */
+
+  .header {
+    margin-bottom: 20px;
+  }
+
+  .title {
+    font-size: 22px;
+    letter-spacing: -0.3px;
+  }
+
+  .subtitle {
+    margin-top: 6px;
+    font-size: 13px;
+  }
+
+  /* Search */
+
   .searchToolbar {
     margin-bottom: 24px;
   }
@@ -382,6 +481,7 @@
   .searchInputWrapper {
     min-height: 48px;
     padding: 0 12px;
+    gap: 9px;
     border-radius: 11px;
   }
 
@@ -389,23 +489,292 @@
     font-size: 14px;
   }
 
+  .searchIcon {
+    width: 19px;
+    height: 19px;
+  }
+
+  .clearSearch {
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+
+  .searchHint {
+    margin-top: 8px;
+    font-size: 12px;
+  }
+
+  /* Results */
+
+  .resultsHeading {
+    margin-bottom: 14px;
+    gap: 8px;
+  }
+
   .sectionTitle {
     font-size: 18px;
+  }
+
+  /* Cards */
+
+  .userGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .userCard {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .cardTop {
+    gap: 12px;
+  }
+
+  .avatarWrapper {
+    width: 48px;
+    height: 48px;
+  }
+
+  .name {
+    font-size: 15px;
+  }
+
+  .username {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+
+  /* Post preview */
+
+  .postSection {
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 9px;
+  }
+
+  .postLabel {
+    margin-bottom: 6px;
+    font-size: 10px;
+  }
+
+  .currentPost {
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  /* View button */
+
+  .viewButton {
+    min-height: 43px;
+    margin-top: 13px;
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  /* Empty state */
+
+  .emptyState {
+    padding: 32px 16px;
+    margin-top: 14px;
+  }
+
+  .emptyState h3 {
+    font-size: 16px;
+  }
+
+  .emptyState p {
+    font-size: 13px;
+  }
+
+  /* Show more */
+
+  .showMoreWrapper {
+    margin: 22px 0 10px;
   }
 
   .showMoreButton {
     width: 100%;
     max-width: 320px;
+    min-height: 44px;
+    font-size: 13px;
+  }
+
+  /* Status */
+
+  .statusState {
+    min-height: 150px;
+    padding: 22px 12px;
+  }
+
+  .statusState p {
+    font-size: 13px;
+  }
+
+  .inlineError {
+    font-size: 13px;
+  }
+
+  .endMessage {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .searchPage {
+    padding: 15px 10px 32px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  .searchInputWrapper {
+    min-height: 45px;
+    padding: 0 10px;
+    gap: 7px;
+  }
+
+  .searchInput {
+    font-size: 13px;
+  }
+
+  .searchHint {
+    font-size: 11px;
+  }
+
+  .sectionTitle {
+    font-size: 16px;
+  }
+
+  .userGrid {
+    gap: 11px;
+  }
+
+  .userCard {
+    padding: 13px;
+  }
+
+  .avatarWrapper {
+    width: 44px;
+    height: 44px;
+  }
+
+  .cardTop {
+    gap: 10px;
+  }
+
+  .name {
+    font-size: 14px;
+  }
+
+  .username {
+    font-size: 11px;
+  }
+
+  .postSection {
+    margin-top: 14px;
+    padding: 10px;
+  }
+
+  .currentPost {
+    font-size: 12px;
+  }
+
+  .viewButton {
+    min-height: 41px;
+    font-size: 12px;
+  }
+
+  .emptyState {
+    padding: 26px 12px;
+  }
+}
+
+@media (max-width: 320px) {
+  .searchPage {
+    padding: 12px 8px 28px;
+  }
+
+  .title {
+    font-size: 19px;
+  }
+
+  .searchInputWrapper {
+    padding: 0 8px;
+    gap: 6px;
+  }
+
+  .searchInput {
+    font-size: 12px;
+  }
+
+  .userCard {
+    padding: 11px;
+  }
+
+  .avatarWrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .cardTop {
+    gap: 8px;
+  }
+
+  .name {
+    font-size: 13px;
+  }
+
+  .username {
+    font-size: 10px;
+  }
+
+  .postSection {
+    padding: 9px;
+  }
+
+  .currentPost {
+    font-size: 12px;
+  }
+
+  .viewButton {
+    font-size: 11px;
+  }
+
+  .showMoreButton {
+    padding: 0 12px;
+    font-size: 12px;
+  }
+}
+
+@media (hover: none) {
+  .userCard:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .viewButton,
+  .showMoreButton,
+  .clearSearch {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spinner {
-    animation-duration: 2s;
+  .searchPage .spinner {
+    animation: none;
   }
 
+  .userCard,
   .searchInputWrapper,
-  .showMoreButton {
+  .viewButton,
+  .showMoreButton,
+  .clearSearch {
     transition: none;
   }
 }

@@ -847,3 +847,549 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+.scrollComponent,
+.createPostContainer,
+.postContainer,
+.singleCard,
+.commentSection,
+.commentItem,
+.commentContent {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.scrollComponent {
+  overflow-x: clip;
+}
+
+/* Create post and feed media */
+.previewImage,
+.imageCard img {
+  max-width: 100%;
+}
+
+.createPostContainer textarea,
+.addComment input {
+  min-width: 0;
+}
+
+/* Comment content should wrap even for long URLs / unbroken text */
+.commentBody,
+.commentAuthor,
+.commentUsername,
+.commentDate,
+.commentContent {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.commentHeader {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.commentDate {
+  white-space: normal;
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .scrollComponent {
+    padding: 16px;
+  }
+
+  .createPostContainer,
+  .postContainer {
+    max-width: 650px;
+  }
+
+  .postContainer {
+    margin-top: 18px;
+    gap: 14px;
+  }
+
+  .singleCard {
+    padding: 16px;
+  }
+
+  .commentSection {
+    padding: 14px;
+  }
+
+  .commentItem {
+    gap: 10px;
+    padding: 11px;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 600px) {
+  .scrollComponent {
+    padding: 12px 10px 28px;
+  }
+
+  .createPostContainer {
+    padding: 13px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  .createTop {
+    gap: 10px;
+  }
+
+  .createAvatar {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  .createPostContainer textarea {
+    min-height: 64px;
+    max-height: 180px;
+    padding: 8px 2px;
+    font-size: 14px;
+  }
+
+  .previewWrapper {
+    border-radius: 10px;
+  }
+
+  .previewImage {
+    max-height: 280px;
+  }
+
+  .removePreview {
+    top: 7px;
+    right: 7px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .createActions {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 10px;
+  }
+
+  .attachBtn {
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .attachBtn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .fileName {
+    flex: 1 1 90px;
+    font-size: 11px;
+  }
+
+  .upload {
+    min-height: 40px;
+    padding: 8px 17px;
+    font-size: 13px;
+  }
+
+  /* Feed cards */
+  .postContainer {
+    margin-top: 14px;
+    gap: 12px;
+  }
+
+  .singleCard {
+    padding: 13px;
+    border-radius: 13px;
+  }
+
+  .singleCardProfile {
+    gap: 10px;
+  }
+
+  .userProfile {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  .nameRow {
+    gap: 6px;
+  }
+
+  .name {
+    font-size: 14px;
+  }
+
+  .username {
+    font-size: 12px;
+  }
+
+  .deleteBtn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .body {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .imageCard {
+    margin-top: 11px;
+    border-radius: 10px;
+  }
+
+  .imageCard img {
+    max-height: 400px;
+    object-fit: contain;
+  }
+
+  /* Like / comment / share actions */
+  .option {
+    gap: 4px;
+    padding-top: 8px;
+    margin-top: 11px;
+  }
+
+  .singleOption {
+    min-width: 0;
+    min-height: 40px;
+    gap: 5px;
+    padding: 8px 5px;
+  }
+
+  .singleOption svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .singleOption p {
+    font-size: 12px;
+  }
+
+  /* Comment section: compact but readable */
+  .commentSection {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 11px;
+  }
+
+  .commentSection h4 {
+    margin-bottom: 11px;
+    font-size: 14px;
+  }
+
+  .commentsList {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .commentItem {
+    align-items: flex-start;
+    gap: 9px;
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .commentAvatar {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    font-size: 12px;
+  }
+
+  .commentContent {
+    flex: 1;
+    width: 0;
+  }
+
+  .commentHeader {
+    justify-content: flex-start;
+    align-items: baseline;
+    column-gap: 7px;
+    row-gap: 3px;
+  }
+
+  .commentAuthor {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .commentDate {
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .commentUsername {
+    margin-top: 2px;
+    font-size: 11px;
+  }
+
+  .commentBody {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .noComments {
+    padding: 15px 10px;
+    font-size: 12px;
+  }
+
+  /* Keep input and send button side-by-side on phones */
+  .addComment {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+  }
+
+  .addComment input {
+    flex: 1 1 auto;
+    width: 0;
+    min-width: 0;
+    min-height: 42px;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .addComment button {
+    flex: 0 0 auto;
+    min-height: 42px;
+    padding: 9px 13px;
+    font-size: 12px;
+  }
+
+  /* Share toast */
+  .toast {
+    bottom: 18px;
+    width: max-content;
+    max-width: calc(100% - 24px);
+    padding: 9px 15px;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  /* Delete confirmation modal */
+  .modalOverlay {
+    align-items: center;
+    padding: 14px;
+  }
+
+  .confirmModal {
+    max-width: 100%;
+    padding: 23px 17px 18px;
+    border-radius: 14px;
+  }
+
+  .modalIcon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .confirmModal h2 {
+    font-size: 17px;
+  }
+
+  .confirmModal p {
+    font-size: 13px;
+  }
+
+  .cancelBtn,
+  .confirmDeleteBtn {
+    min-height: 42px;
+    padding: 10px;
+    font-size: 13px;
+  }
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+  .scrollComponent {
+    padding: 10px 8px 24px;
+  }
+
+  .createPostContainer {
+    padding: 11px;
+  }
+
+  .createAvatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+
+  .attachBtn {
+    gap: 5px;
+    padding: 7px 8px;
+    font-size: 12px;
+  }
+
+  .attachBtn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .upload {
+    padding: 8px 13px;
+    font-size: 12px;
+  }
+
+  .singleCard {
+    padding: 11px;
+  }
+
+  .userProfile {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+
+  .body {
+    font-size: 13px;
+  }
+
+  .singleOption {
+    gap: 4px;
+    padding: 8px 3px;
+  }
+
+  .singleOption svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .singleOption p {
+    font-size: 11px;
+  }
+
+  .commentSection {
+    padding: 10px;
+  }
+
+  .commentItem {
+    gap: 7px;
+    padding: 9px;
+  }
+
+  .commentAvatar {
+    width: 29px;
+    height: 29px;
+    min-width: 29px;
+    font-size: 11px;
+  }
+
+  .commentAuthor {
+    font-size: 12px;
+  }
+
+  .commentDate {
+    font-size: 9px;
+  }
+
+  .commentUsername {
+    font-size: 10px;
+  }
+
+  .commentBody {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .addComment {
+    gap: 6px;
+  }
+
+  .addComment input {
+    min-height: 40px;
+    padding: 9px 10px;
+    font-size: 12px;
+  }
+
+  .addComment button {
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .modalActions {
+    gap: 7px;
+  }
+}
+
+/* Very narrow phones */
+@media (max-width: 340px) {
+  .option {
+    gap: 2px;
+  }
+
+  .singleOption {
+    flex-direction: column;
+    gap: 4px;
+    min-height: 48px;
+    padding: 6px 2px;
+  }
+
+  .singleOption p {
+    font-size: 10px;
+  }
+
+  .commentHeader {
+    column-gap: 5px;
+  }
+
+  .commentDate {
+    flex-basis: 100%;
+    text-align: left;
+  }
+
+  .addComment {
+    align-items: stretch;
+  }
+
+  .addComment input {
+    padding-right: 8px;
+    padding-left: 9px;
+  }
+
+  .addComment button {
+    padding-right: 9px;
+    padding-left: 9px;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+}
+
+/* Touch devices: avoid hover-only visual movement */
+@media (hover: none) {
+  .singleCard:hover {
+    box-shadow: none;
+  }
+
+  .singleOption:active,
+  .upload:active,
+  .removePreview:active {
+    transform: scale(0.97);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .singleCard,
+  .singleOption,
+  .upload,
+  .removePreview,
+  .toast,
+  .createPostContainer,
+  .addComment input {
+    animation: none !important;
+    transition: none !important;
+  }
+}

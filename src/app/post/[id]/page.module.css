@@ -1,3 +1,8 @@
+/* =========================================
+   POST DETAILS PAGE - COMPLETE RESPONSIVE CSS
+   Theme: GitHub Dark + Indigo
+========================================= */
+
 .page,
 .statusPage {
   --bg: #0d1117;
@@ -15,9 +20,10 @@
   --danger: #ff7b72;
 }
 
-/* ---------- Page shell ---------- */
+/* ---------- Global ---------- */
 
 .page {
+  width: 100%;
   min-height: 100vh;
   padding: 32px 20px 72px;
   background:
@@ -36,7 +42,7 @@
   margin: 0 auto;
 }
 
-/* ---------- Back button ---------- */
+/* ---------- Back Button ---------- */
 
 .backButton {
   display: inline-flex;
@@ -61,6 +67,7 @@
 .backButton svg {
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
   transition: transform 0.2s ease;
 }
 
@@ -77,9 +84,11 @@
   transform: scale(0.97);
 }
 
-/* ---------- Post card ---------- */
+/* ---------- Post Card ---------- */
 
 .postCard {
+  width: 100%;
+  min-width: 0;
   padding: 28px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -87,6 +96,8 @@
   box-shadow: 0 12px 32px rgba(1, 4, 9, 0.35);
   overflow-wrap: anywhere;
 }
+
+/* ---------- Author Section ---------- */
 
 .authorSection {
   display: flex;
@@ -104,7 +115,6 @@
   background: var(--surface-hover);
   border: 2px solid var(--accent);
   padding: 2px;
-  box-sizing: border-box;
 }
 
 .authorInfo {
@@ -125,6 +135,7 @@
 .username {
   color: var(--text-muted);
   font-size: 13px;
+  overflow-wrap: anywhere;
 }
 
 .date {
@@ -142,6 +153,8 @@
   display: none;
 }
 
+/* ---------- Post Body ---------- */
+
 .postBody {
   margin: 24px 0;
   color: var(--text);
@@ -149,7 +162,10 @@
   line-height: 1.8;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
+
+/* ---------- Media ---------- */
 
 .mediaContainer {
   width: 100%;
@@ -167,7 +183,7 @@
   object-fit: contain;
 }
 
-/* ---------- Stats + actions ---------- */
+/* ---------- Post Stats ---------- */
 
 .postStats {
   display: flex;
@@ -180,6 +196,8 @@
   border-top: 1px solid var(--border);
 }
 
+/* ---------- Post Actions ---------- */
+
 .postActions {
   display: flex;
   gap: 10px;
@@ -189,6 +207,7 @@
 
 .actionButton {
   flex: 1;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -240,7 +259,7 @@
   fill: currentColor;
 }
 
-/* ---------- Comments ---------- */
+/* ---------- Comments Section ---------- */
 
 .commentsSection {
   padding-top: 24px;
@@ -265,6 +284,8 @@
   font-weight: 600;
 }
 
+/* ---------- Comment Form ---------- */
+
 .commentForm {
   display: flex;
   flex-direction: column;
@@ -284,6 +305,7 @@
 }
 
 .commentInput {
+  display: block;
   width: 100%;
   min-height: 80px;
   padding: 4px;
@@ -346,6 +368,8 @@
   cursor: not-allowed;
 }
 
+/* ---------- Comment Error ---------- */
+
 .commentError {
   margin: 0;
   padding: 8px 12px;
@@ -354,7 +378,10 @@
   border: 1px solid rgba(255, 123, 114, 0.3);
   border-radius: 8px;
   font-size: 13px;
+  overflow-wrap: anywhere;
 }
+
+/* ---------- Comments List ---------- */
 
 .commentsList {
   display: flex;
@@ -367,6 +394,7 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  min-width: 0;
   padding: 14px 16px;
   background: var(--surface-2);
   border: 1px solid var(--border-soft);
@@ -398,6 +426,7 @@
 .commentContent {
   flex: 1;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .commentHeader {
@@ -411,6 +440,7 @@
   color: var(--text-strong);
   font-size: 14px;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .commentUsername {
@@ -418,6 +448,7 @@
   color: var(--text-muted);
   font-size: 12px;
   cursor: pointer;
+  overflow-wrap: anywhere;
 }
 
 .commentBody {
@@ -427,6 +458,7 @@
   line-height: 1.7;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .noComments {
@@ -440,12 +472,13 @@
   border-radius: 12px;
 }
 
-/* ---------- Loading / error states ---------- */
+/* ---------- Loading / Error States ---------- */
 
 .statusPage {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   min-height: 100vh;
   padding: 24px;
   box-sizing: border-box;
@@ -523,42 +556,350 @@
   margin-bottom: 0;
 }
 
-/* ---------- Responsive ---------- */
+/* =========================================
+   TABLET RESPONSIVENESS
+========================================= */
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .page {
-    padding: 20px 12px 48px;
+    padding: 24px 16px 50px;
+  }
+
+  .container {
+    max-width: 100%;
   }
 
   .postCard {
-    padding: 18px;
-    border-radius: 14px;
+    padding: 22px;
+    border-radius: 16px;
   }
 
-  .authorSection {
-    flex-wrap: wrap;
-  }
-
-  .date {
-    order: 3;
-    margin-left: 66px;
+  .postMedia {
+    max-height: 500px;
   }
 
   .postBody {
-    margin: 20px 0;
     font-size: 15px;
+    line-height: 1.75;
   }
 
-  .postActions {
-    gap: 8px;
+  .commentsTitle {
+    font-size: 17px;
+  }
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS
+========================================= */
+
+@media (max-width: 600px) {
+  .page {
+    padding: 16px 12px 36px;
   }
 
-  .actionButton {
-    padding: 10px 6px;
+  .container {
+    width: 100%;
+  }
+
+  /* Back button */
+
+  .backButton {
+    padding: 8px 13px 8px 10px;
+    margin-bottom: 14px;
     font-size: 13px;
   }
 
+  /* Post card */
+
+  .postCard {
+    padding: 16px;
+    border-radius: 13px;
+  }
+
+  /* Author */
+
+  .authorSection {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    column-gap: 11px;
+    row-gap: 8px;
+    align-items: center;
+  }
+
+  .avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .authorInfo {
+    gap: 2px;
+  }
+
+  .authorName {
+    font-size: 14px;
+  }
+
+  .username {
+    font-size: 12px;
+  }
+
+  .date {
+    grid-column: 2;
+    justify-self: start;
+    margin: 0;
+    padding: 4px 9px;
+    font-size: 11px;
+  }
+
+  /* Post content */
+
+  .postBody {
+    margin: 18px 0;
+    font-size: 14px;
+    line-height: 1.75;
+  }
+
+  /* Media */
+
+  .mediaContainer {
+    margin: 16px 0;
+    border-radius: 10px;
+  }
+
+  .postMedia {
+    width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+  }
+
+  /* Stats */
+
+  .postStats {
+    gap: 8px;
+    padding: 12px 2px;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+
+  /* Actions */
+
+  .postActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px 0 15px;
+  }
+
+  .actionButton {
+    min-width: 0;
+    min-height: 42px;
+    padding: 9px 6px;
+    gap: 6px;
+    font-size: 12px;
+    border-radius: 9px;
+  }
+
+  .actionButton svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  /* Comments */
+
+  .commentsSection {
+    padding-top: 20px;
+  }
+
+  .commentsTitle {
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 16px;
+  }
+
+  .commentsCount {
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+
+  /* Comment form */
+
+  .commentForm {
+    padding: 11px;
+    gap: 8px;
+    border-radius: 11px;
+  }
+
+  .commentInput {
+    min-height: 75px;
+    font-size: 13px;
+  }
+
+  .formFooter {
+    gap: 8px;
+    padding-top: 9px;
+  }
+
+  .charCount {
+    font-size: 11px;
+  }
+
+  .submitButton {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  /* Comment list */
+
+  .commentsList {
+    gap: 10px;
+    margin-top: 16px;
+  }
+
   .commentItem {
-    padding: 12px;
+    gap: 9px;
+    padding: 11px;
+    border-radius: 10px;
+  }
+
+  .commentAvatar {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .commentAuthor {
+    font-size: 13px;
+  }
+
+  .commentUsername {
+    font-size: 11px;
+  }
+
+  .commentBody {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .noComments {
+    padding: 22px 12px;
+    font-size: 13px;
+  }
+
+  /* Error card */
+
+  .errorCard {
+    padding: 24px 18px;
+  }
+
+  .errorCard h2 {
+    font-size: 18px;
+  }
+}
+
+/* =========================================
+   SMALL MOBILE - 380px
+========================================= */
+
+@media (max-width: 380px) {
+  .page {
+    padding: 12px 8px 30px;
+  }
+
+  .postCard {
+    padding: 13px;
+    border-radius: 11px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .authorSection {
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 9px;
+  }
+
+  .authorName {
+    font-size: 13px;
+  }
+
+  .date {
+    font-size: 10px;
+  }
+
+  .postBody {
+    font-size: 13px;
+  }
+
+  .actionButton {
+    gap: 4px;
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+
+  .actionButton svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .commentItem {
+    padding: 9px;
+  }
+
+  .commentInput {
+    font-size: 12px;
+  }
+
+  .submitButton {
+    padding: 8px 12px;
+  }
+}
+
+/* =========================================
+   EXTRA SMALL SCREENS - 320px
+========================================= */
+
+@media (max-width: 320px) {
+  .postCard {
+    padding: 10px;
+  }
+
+  .postActions {
+    gap: 6px;
+  }
+
+  .actionButton {
+    font-size: 10px;
+  }
+
+  .postStats {
+    font-size: 10px;
+  }
+}
+
+/* =========================================
+   TOUCH DEVICES
+========================================= */
+
+@media (hover: none) {
+  .backButton,
+  .actionButton,
+  .submitButton {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* =========================================
+   ACCESSIBILITY
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .statusPage * {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

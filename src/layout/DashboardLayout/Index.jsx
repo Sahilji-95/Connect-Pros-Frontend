@@ -23,7 +23,6 @@ import {
   updateUserPresence,
 } from "@/config/redux/reducer/chatReducer";
 
-// Only these 5 notification types are allowed.
 const ALLOWED_NOTIFICATION_TYPES = [
   "post_like",
   "post_comment",
@@ -55,7 +54,6 @@ export default function DashboardLayout({ children }) {
   const isSearch = pathname?.startsWith("/search");
   const isConnections = pathname?.startsWith("/connections");
 
-  // Load saved notifications from backend.
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -95,7 +93,6 @@ export default function DashboardLayout({ children }) {
     };
   }, [isAuthenticated, dispatch]);
 
-  // Automatically dismiss chat popup.
   useEffect(() => {
     if (!chatPopup) return;
 
@@ -115,46 +112,31 @@ export default function DashboardLayout({ children }) {
     router.push("/notifications");
   };
 
-  // Global Socket + Presence + Notifications + Chat Popup.
-  // Shared socket stays connected across all dashboard pages.
   useEffect(() => {
     if (!isAuthenticated) return;
 
     const socket = getChatSocket();
 
-    // Handle only allowed notification types.
     const handleNewNotification = (notification) => {
       if (!notification?._id) return;
 
       if (!ALLOWED_NOTIFICATION_TYPES.includes(notification.type)) {
         return;
       }
-
-      // Update Redux notification list and unread count.
       dispatch(addNotification(notification));
-
-      // Show real-time activity popup.
       setActivityPopup(notification);
     };
-
-    // Request current online users whenever socket connects.
     const handleConnect = () => {
       socket.emit("presence:get");
     };
-
-    // Receive initial online users list.
     const handlePresenceInitial = ({ onlineUserIds = [] } = {}) => {
       dispatch(setOnlineUsers(onlineUserIds));
     };
-
-    // Receive individual online/offline updates.
     const handlePresenceUpdate = (data) => {
       if (!data?.userId) return;
 
       dispatch(updateUserPresence(data));
     };
-
-    // Receive new chat message popup.
     const handleChatPopup = (data) => {
       if (!data?.conversationId || !data?.message || !data?.sender) {
         return;
@@ -172,8 +154,6 @@ export default function DashboardLayout({ children }) {
     socket.on("presence:initial", handlePresenceInitial);
     socket.on("presence:update", handlePresenceUpdate);
     socket.on("chat:popup", handleChatPopup);
-
-    // Socket may already be connected before this effect runs.
     if (!socket.connected) {
       socket.connect();
     } else {
@@ -186,9 +166,6 @@ export default function DashboardLayout({ children }) {
       socket.off("presence:initial", handlePresenceInitial);
       socket.off("presence:update", handlePresenceUpdate);
       socket.off("chat:popup", handleChatPopup);
-
-      // Do not disconnect the shared socket here.
-      // Chat and DashboardLayout use the same socket.
     };
   }, [isAuthenticated, dispatch]);
 
@@ -290,7 +267,7 @@ export default function DashboardLayout({ children }) {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1-7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                  d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
                 />
               </svg>
 
@@ -338,7 +315,7 @@ export default function DashboardLayout({ children }) {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9a6 6 0 0 0-12 0v.75a8.967 8.967 0 0 1-2.311 6.022 23.848 23.848 0 0 1-5.454 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
+                  d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
                 />
               </svg>
 
