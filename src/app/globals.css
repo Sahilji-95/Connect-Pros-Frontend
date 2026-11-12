@@ -1,116 +1,129 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Manrope", sans-serif;
+
+  --color-app: var(--app-bg);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-muted: var(--surface-muted);
+
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-border: var(--border);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+
+  --radius-control: var(--r-control);
+  --radius-card: var(--r-card);
+  --radius-panel: var(--r-panel);
+}
+
+:root {
+  color-scheme: light;
+
+  /* Warm paper + forest green */
+  --app-bg: #f6f2ea;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-muted: #efeae0;
+
+  --text: #1f2a24;
+  --text-muted: #6b7469;
+  --border: #e2dccf;
+
+  --primary: #2f5d46;
+  --primary-hover: #244a37;
+  --primary-soft: #e7efe8;
+
+  --accent: #c8643b;
+  --accent-soft: #f8e9e1;
+
+  --success: #398461;
+  --danger: #c94c4c;
+  --warning: #b77b2d;
+
+  --online: #398461;
+
+  --shadow-sm: 0 1px 3px rgba(31, 42, 36, 0.04);
+  --shadow-md: 0 8px 24px rgba(31, 42, 36, 0.06);
+  --shadow-lg: 0 18px 48px rgba(31, 42, 36, 0.09);
+
+  --r-control: 10px;
+  --r-card: 14px;
+  --r-panel: 20px;
+
+  --focus-ring: rgba(47, 93, 70, 0.25);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Ink dark + amber */
+  --app-bg: #12141a;
+  --surface: #1b1e26;
+  --surface-elevated: #222630;
+  --surface-muted: #242832;
+
+  --text: #ece9e2;
+  --text-muted: #8a8f9c;
+  --border: #2a2e39;
+
+  --primary: #e8a33d;
+  --primary-hover: #f0b454;
+  --primary-soft: #382c1d;
+
+  --accent: #d58a42;
+  --accent-soft: #382b20;
+
+  --success: #5db38a;
+  --danger: #f07878;
+  --warning: #e8a33d;
+
+  --online: #5db38a;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.22);
+  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.32);
+
+  --focus-ring: rgba(232, 163, 61, 0.3);
+}
 
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
-/* =========================
-   LIGHT THEME
-========================= */
-
-:root {
-  /* Primary */
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --primary-light: #818cf8;
-
-  /* Backgrounds */
-  --background: #f8fafc;
-  --surface: #ffffff;
-  --surface-hover: #f1f5f9;
-
-  /* Border */
-  --border: #e2e8f0;
-
-  /* Text */
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
-
-  /* Common */
-  --button-text: #ffffff;
-
-  /* Shadows */
-  --card-shadow: 0 8px 25px rgba(15, 23, 42, 0.06);
-  --navbar-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
-
-  /* Navbar */
-  --navbar-background: rgba(255, 255, 255, 0.92);
-
-  /* Primary effects */
-  --primary-border: rgba(99, 102, 241, 0.25);
-  --primary-glow: rgba(99, 102, 241, 0.12);
-}
-
-/* =========================
-   DARK THEME
-========================= */
-
-[data-theme="dark"] {
-  /* Primary */
-  --primary: #6366f1;
-  --primary-hover: #818cf8;
-  --primary-light: #818cf8;
-
-  /* Backgrounds */
-  --background: #0d1117;
-  --surface: #161b22;
-  --surface-hover: #21262d;
-
-  /* Border */
-  --border: #30363d;
-
-  /* Text */
-  --text-primary: #f0f6fc;
-  --text-secondary: #8b949e;
-  --text-muted: #6e7681;
-
-  /* Common */
-  --button-text: #ffffff;
-
-  /* Shadows */
-  --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-  --navbar-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-
-  /* Navbar */
-  --navbar-background: rgba(22, 27, 34, 0.95);
-
-  /* Primary effects */
-  --primary-border: rgba(99, 102, 241, 0.25);
-  --primary-glow: rgba(99, 102, 241, 0.15);
-}
-
-/* =========================
-   BODY
-========================= */
-
-html,
-body {
-  width: 100%;
+html {
   min-height: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
-  font-family: "Poppins", sans-serif;
-  background: var(--background);
-  color: var(--text-primary);
-
+  min-height: 100vh;
+  margin: 0;
+  background: var(--app-bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
   transition:
-    background-color 0.25s ease,
-    color 0.25s ease;
+    background-color 180ms ease,
+    color 180ms ease;
 }
-
-/* =========================
-   COMMON ELEMENTS
-========================= */
 
 button,
 input,
 textarea,
 select {
-  font-family: inherit;
+  font: inherit;
 }
 
 button {
@@ -123,6 +136,27 @@ a {
 }
 
 img {
-  max-width: 100%;
   display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background: var(--primary-soft);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

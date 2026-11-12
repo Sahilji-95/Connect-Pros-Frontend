@@ -12,8 +12,38 @@ import {
 import { getPostsByUsername } from "@/config/redux/action/postAction";
 
 import { BASE_URl } from "@/config";
-import styles from "./page.module.css";
 import clientServer from "@/config";
+
+import {
+  Briefcase,
+  Check,
+  Clock3,
+  Download,
+  GraduationCap,
+  LoaderCircle,
+  MessageCircle,
+  ThumbsUp,
+  UserPlus,
+  X,
+} from "lucide-react";
+
+// Shared style tokens
+const actionBase =
+  "inline-flex h-10 items-center justify-center gap-2 rounded-control px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60";
+
+const actionPrimary = `${actionBase} bg-primary text-white hover:bg-primary-hover dark:text-[#12141A]`;
+
+const actionOutline = `${actionBase} border border-border bg-surface text-text hover:border-primary/40 hover:text-primary`;
+
+const actionConnected = `${actionBase} border border-success/30 bg-success/10 text-success`;
+
+const actionPending = `${actionBase} border border-border bg-surface-muted text-muted`;
+
+const actionReject = `${actionBase} border border-danger/30 bg-surface text-danger hover:bg-danger/5`;
+
+const sectionCard = "rounded-card border border-border bg-surface p-5 sm:p-6";
+
+const sectionTitle = "font-serif text-xl font-bold text-text";
 
 export default function ViewProfile() {
   const router = useRouter();
@@ -145,19 +175,33 @@ export default function ViewProfile() {
 
   if (profileLoading) {
     return (
-      <div className={styles.status}>
-        <span className={styles.loader} />
-        Loading profile...
+      <div
+        role="status"
+        className="flex min-h-screen flex-col items-center justify-center gap-3 bg-app text-text"
+      >
+        <LoaderCircle size={24} className="animate-spin text-primary" />
+        <p className="text-sm text-muted">Loading profile...</p>
       </div>
     );
   }
 
   if (profileError) {
-    return <div className={styles.status}>{profileError}</div>;
+    return (
+      <div
+        role="alert"
+        className="flex min-h-screen items-center justify-center bg-app px-4 text-center text-sm text-danger"
+      >
+        {profileError}
+      </div>
+    );
   }
 
   if (!profileByUsername) {
-    return <div className={styles.status}>Profile not found</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-app px-4 text-center text-sm text-muted">
+        Profile not found
+      </div>
+    );
   }
 
   const {
@@ -177,31 +221,39 @@ export default function ViewProfile() {
   const firstEducation = education[0];
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        <section className={styles.profileHeader}>
-          <div className={styles.avatarWrapper}>
+    <main className="min-h-screen bg-app text-text">
+      <div className="mx-auto flex w-full max-w-[920px] flex-col gap-5 px-4 py-8 sm:px-6 sm:py-12">
+        {/* Profile header */}
+        <section
+          className={`${sectionCard} flex flex-col gap-6 sm:flex-row sm:items-center`}
+        >
+          <div className="shrink-0">
             {profileImage ? (
               <img
                 src={profileImage}
                 alt={userId?.username || "Profile"}
-                className={styles.avatar}
+                className="h-24 w-24 rounded-full border border-border object-cover sm:h-28 sm:w-28"
               />
             ) : (
-              <div className={styles.avatarFallback}>
+              <div className="flex h-24 w-24 items-center justify-center rounded-full border border-border bg-primary-soft text-3xl font-bold text-primary sm:h-28 sm:w-28">
                 {userId?.username?.[0]?.toUpperCase() || "U"}
               </div>
             )}
           </div>
 
-          <div className={styles.profileInfo}>
-            <span className={styles.profileLabel}>USER PROFILE</span>
+          <div className="min-w-0 flex-1">
+            <h1 className="break-words font-serif text-2xl font-bold tracking-tight text-text sm:text-3xl">
+              {userId?.name || userId?.username || "User"}
+            </h1>
 
-            <h1>{userId?.name || userId?.username || "User"}</h1>
+            <div className="mt-1.5 flex flex-wrap items-center gap-3">
+              <p className="text-sm text-muted">@{userId?.username}</p>
 
-            <div className={styles.cv}>
-              <p className={styles.username}>@{userId?.username}</p>
-              <div
+              <button
+                type="button"
+                aria-label="Download resume"
+                title="Download resume"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted transition hover:border-primary/40 hover:text-primary"
                 onClick={async () => {
                   const response = await clientServer.get(
                     `/user/dwonlaod_resume?id=${userId._id}`,
@@ -209,61 +261,46 @@ export default function ViewProfile() {
                   window.open(`${BASE_URl}/uploads/${response.data.message}`);
                 }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="size-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
-                  />
-                </svg>
-              </div>
+                <Download size={16} />
+              </button>
             </div>
           </div>
 
           {connectionStatus === "self" ? null : (
-            <div className={styles.connectionActions}>
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
               {connectionStatus === "none" && (
                 <button
-                  className={`${styles.connectionBtn} ${styles.connectBtn}`}
+                  className={actionPrimary}
                   disabled={loading}
                   onClick={handleConnect}
                 >
-                  {loading ? "Sending..." : "+ Connect"}
+                  {!loading && <UserPlus size={16} />}
+                  {loading ? "Sending..." : "Connect"}
                 </button>
               )}
 
               {connectionStatus === "pending" && (
-                <button
-                  className={`${styles.connectionBtn} ${styles.pendingBtn}`}
-                  disabled
-                >
-                  ◷ Pending
+                <button className={actionPending} disabled>
+                  <Clock3 size={16} />
+                  Pending
                 </button>
               )}
 
               {connectionStatus === "accepted" && (
                 <>
-                  <button
-                    className={`${styles.connectionBtn} ${styles.connectedBtn}`}
-                    disabled
-                  >
-                    ✓ Connected
+                  <button className={actionConnected} disabled>
+                    <Check size={16} />
+                    Connected
                   </button>
 
                   <button
                     type="button"
-                    className={`${styles.connectionBtn} ${styles.messageBtn}`}
+                    className={actionOutline}
                     onClick={handleMessage}
                     disabled={messageLoading}
                   >
-                    {messageLoading ? "Opening..." : "✉ Message"}
+                    <MessageCircle size={16} />
+                    {messageLoading ? "Opening..." : "Message"}
                   </button>
                 </>
               )}
@@ -271,195 +308,177 @@ export default function ViewProfile() {
               {connectionStatus === "received" && (
                 <>
                   <button
-                    className={`${styles.connectionBtn} ${styles.acceptBtn}`}
+                    className={actionPrimary}
                     disabled={loading}
                     onClick={() => handleRequestAction("accept")}
                   >
-                    ✓ Accept
+                    <Check size={16} />
+                    Accept
                   </button>
 
                   <button
-                    className={`${styles.connectionBtn} ${styles.rejectBtn}`}
+                    className={actionReject}
                     disabled={loading}
                     onClick={() => handleRequestAction("reject")}
                   >
-                    ✕ Reject
+                    <X size={16} />
+                    Reject
                   </button>
                 </>
               )}
             </div>
           )}
         </section>
-        <div className={styles.divider} />
 
-        <section className={styles.aboutSection}>
-          <h2>About me</h2>
+        {/* About */}
+        <section className={sectionCard}>
+          <h2 className={sectionTitle}>About me</h2>
 
-          <p className={styles.bio}>
+          <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-muted">
             {bio ||
               "A short introduction about the developer, their interests and professional goals."}
           </p>
         </section>
 
-        <section className={styles.overviewGrid}>
-          <article className={styles.overviewCard}>
-            <div className={styles.cardIcon} aria-hidden="true">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              >
-                <rect x="3" y="7" width="18" height="14" rx="2" />
-                <path d="M9 7V4h6v3M3 12h18M10 12v2h4v-2" />
-              </svg>
+        {/* Overview */}
+        <section className="grid gap-5 sm:grid-cols-2">
+          <article className={sectionCard}>
+            <div className="flex items-center gap-2 text-muted">
+              <Briefcase size={16} />
+              <span className="text-xs font-semibold">Current work</span>
             </div>
 
-            <span className={styles.cardLabel}>CURRENT WORK</span>
-
-            <h3>{currentPost || "Not specified"}</h3>
+            <h3 className="mt-3 break-words text-base font-semibold text-text">
+              {currentPost || "Not specified"}
+            </h3>
           </article>
 
-          <article className={styles.overviewCard}>
-            <div className={styles.cardIcon} aria-hidden="true">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              >
-                <path d="m2 9 10-5 10 5-10 5L2 9Z" />
-                <path d="M6 11v5c4 4 8 4 12 0v-5M22 9v6" />
-              </svg>
+          <article className={sectionCard}>
+            <div className="flex items-center gap-2 text-muted">
+              <GraduationCap size={17} />
+              <span className="text-xs font-semibold">Education</span>
             </div>
 
-            <span className={styles.cardLabel}>EDUCATION</span>
-
-            <h3>{firstEducation?.degree || "Not specified"}</h3>
+            <h3 className="mt-3 break-words text-base font-semibold text-text">
+              {firstEducation?.degree || "Not specified"}
+            </h3>
           </article>
         </section>
 
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Experience</h2>
+        {/* Experience */}
+        <section className={sectionCard}>
+          <h2 className={sectionTitle}>Experience</h2>
 
           {pastWork.length > 0 ? (
-            <div className={styles.timeline}>
+            <div className="mt-5 ml-1.5 border-l border-border">
               {pastWork.map((work, index) => (
                 <article
-                  className={styles.timelineItem}
+                  className="relative pb-6 pl-6 last:pb-0"
                   key={work._id || `${work.pastWork}-${index}`}
                 >
-                  <span className={styles.experienceLabel}>
-                    PROFESSIONAL EXPERIENCE
-                  </span>
-                  <h3>Company - {work.pastWork}</h3>
+                  <span
+                    aria-hidden="true"
+                    className="absolute -left-[5.5px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-surface"
+                  />
+
+                  <h3 className="break-words text-base font-semibold text-text">
+                    {work.pastWork}
+                  </h3>
 
                   {work.position && (
-                    <p className={styles.position}>
-                      Position - {work.position}
-                    </p>
+                    <p className="mt-0.5 text-sm text-text">{work.position}</p>
                   )}
 
                   {work.years != null && (
-                    <p className={styles.duration}>Duration - {work.years} </p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      Duration: {work.years}
+                    </p>
                   )}
                 </article>
               ))}
             </div>
           ) : (
-            <p className={styles.emptyText}>No previous experience added.</p>
+            <p className="mt-3 text-sm text-muted">
+              No previous experience added.
+            </p>
           )}
         </section>
 
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Education</h2>
+        {/* Education */}
+        <section className={sectionCard}>
+          <h2 className={sectionTitle}>Education</h2>
 
           {education.length > 0 ? (
-            <div className={styles.educationList}>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {education.map((edu, index) => (
                 <article
-                  className={styles.educationCard}
+                  className="rounded-control border border-border bg-app p-4"
                   key={edu._id || `${edu.degree}-${index}`}
                 >
-                  <h3>{edu.degree || "Education"}</h3>
+                  <h3 className="break-words text-sm font-semibold text-text">
+                    {edu.degree || "Education"}
+                  </h3>
 
                   {edu.school && (
-                    <p className={styles.position}>{edu.school}</p>
+                    <p className="mt-1 text-sm text-text">{edu.school}</p>
                   )}
 
                   {edu.fieldOfStudy && (
-                    <p className={styles.duration}>{edu.fieldOfStudy}</p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {edu.fieldOfStudy}
+                    </p>
                   )}
                 </article>
               ))}
             </div>
           ) : (
-            <p className={styles.emptyText}>No education details added.</p>
+            <p className="mt-3 text-sm text-muted">
+              No education details added.
+            </p>
           )}
         </section>
-        <div className={styles.postsSection}>
-          <h3 className={styles.sectionTitle}>Posts</h3>
+
+        {/* Posts */}
+        <section>
+          <h2 className={`${sectionTitle} mb-4`}>Posts</h2>
 
           {profilePosts.length > 0 ? (
-            <div className={styles.postsGrid}>
+            <div className="grid gap-5 sm:grid-cols-2">
               {profilePosts.map((post) => (
-                <article key={post._id} className={styles.postCard}>
+                <article
+                  key={post._id}
+                  className="flex flex-col overflow-hidden rounded-card border border-border bg-surface"
+                >
                   {post.media && (
-                    <div className={styles.postImageWrapper}>
-                      {post.media && (
-                        <Image
-                          src={post.media}
-                          alt="Post image"
-                          width={800}
-                          height={600}
-                          className={styles.postImage}
-                          loading="eager"
-                        />
-                      )}
+                    <div className="aspect-[4/3] w-full overflow-hidden border-b border-border bg-surface-muted">
+                      <Image
+                        src={post.media}
+                        alt="Post image"
+                        width={800}
+                        height={600}
+                        className="h-full w-full object-cover"
+                        loading="eager"
+                      />
                     </div>
                   )}
 
-                  <div className={styles.postContent}>
-                    <p className={styles.postBody}>{post.body}</p>
+                  <div className="flex flex-1 flex-col justify-between gap-4 p-4 sm:p-5">
+                    <p className="whitespace-pre-wrap break-words text-sm leading-6 text-text">
+                      {post.body}
+                    </p>
 
-                    <div className={styles.postFooter}>
-                      <div className={styles.likes}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={1.7}
-                          className={styles.likeIcon}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z"
-                          />
-                        </svg>
+                    <div className="flex items-center gap-4 text-xs text-muted">
+                      <div className="flex items-center gap-1.5">
+                        <ThumbsUp size={15} />
                         <span>{post.likes?.length ?? post.likes ?? 0}</span>
                       </div>
-                      <div className={styles.commentInfo}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={1.7}
-                          className={styles.commentIcon}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"
-                          />
-                        </svg>
 
+                      <div className="flex items-center gap-1.5">
+                        <MessageCircle size={15} />
                         <span>{post.comments?.length ?? 0}</span>
                       </div>
 
-                      <span className={styles.postDate}>
+                      <span className="ml-auto">
                         {new Date(post.createdAt).toLocaleDateString("en-IN", {
                           day: "numeric",
                           month: "short",
@@ -472,13 +491,18 @@ export default function ViewProfile() {
               ))}
             </div>
           ) : (
-            <div className={styles.emptyPosts}>
-              <p>No posts yet</p>
-              <span>Posts shared by this user will appear here.</span>
+            <div className="rounded-card border border-dashed border-border px-5 py-12 text-center">
+              <p className="text-sm font-semibold text-text">No posts yet</p>
+              <span className="mt-1 block text-xs text-muted">
+                Posts shared by this user will appear here.
+              </span>
             </div>
           )}
-        </div>
-        <footer className={styles.footer}>User profile · Public view</footer>
+        </section>
+
+        <footer className="pt-2 text-center text-xs text-muted">
+          User profile · Public view
+        </footer>
       </div>
     </main>
   );

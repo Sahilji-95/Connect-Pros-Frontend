@@ -11,8 +11,18 @@ import {
   resendResetOTP,
 } from "@/config/redux/action/authAction";
 
-// Is path ko apni CSS module file ke actual path ke according set karo.
-import styles from "./forget-password.module.css";
+// Shared style tokens
+const inputClass =
+  "h-11 w-full rounded-control border border-border bg-app px-3.5 text-sm text-text outline-none transition placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/25 aria-invalid:border-danger aria-invalid:focus:ring-danger/25 disabled:cursor-not-allowed disabled:opacity-50";
+
+const primaryButtonClass =
+  "flex h-11 w-full items-center justify-center rounded-control bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 dark:text-[#12141A]";
+
+const linkButtonClass =
+  "text-xs font-semibold text-primary transition hover:text-primary-hover disabled:cursor-not-allowed disabled:opacity-50";
+
+const backButtonClass =
+  "self-start text-xs font-medium text-muted transition hover:text-text disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function ForgetPassword() {
   const dispatch = useDispatch();
@@ -195,27 +205,23 @@ export default function ForgetPassword() {
 
   return (
     <UserLayOut>
-      <div className={styles.container}>
-        <div className={styles.cardContainer}>
-          <div className={styles.cardContainer_left}>
-            <h1 className={styles.cardLeftHeading}>
+      <div className="flex min-h-[calc(100vh-76px)] items-center justify-center bg-app px-4 py-10 text-text sm:px-6">
+        <div className="grid w-full max-w-[920px] overflow-hidden rounded-panel border border-border bg-surface shadow-md lg:grid-cols-[1.25fr_1fr]">
+          {/* Form side */}
+          <div className="p-6 sm:p-10">
+            <h1 className="font-serif text-3xl font-bold tracking-tight text-text">
               {showOtpScreen ? "Verify OTP" : "Forgot Password"}
             </h1>
 
             {notice.message && (
               <p
-                className={styles.message}
+                className={`mt-5 rounded-control border px-3.5 py-2.5 text-xs leading-5 ${
+                  notice.isError
+                    ? "border-danger/30 bg-danger/5 text-danger"
+                    : "border-success/30 bg-success/10 text-success"
+                }`}
                 role="status"
                 aria-live="polite"
-                style={{
-                  color: notice.isError ? "#c7d2fe" : "#86efac",
-                  backgroundColor: notice.isError
-                    ? "rgba(99, 102, 241, 0.10)"
-                    : "rgba(34, 197, 94, 0.08)",
-                  border: notice.isError
-                    ? "1px solid rgba(99, 102, 241, 0.45)"
-                    : "1px solid rgba(34, 197, 94, 0.35)",
-                }}
               >
                 {notice.message}
               </p>
@@ -223,39 +229,44 @@ export default function ForgetPassword() {
 
             {!showOtpScreen ? (
               <form
-                className={styles.inputContainer}
+                className="mt-6 flex flex-col gap-4"
                 onSubmit={handleEmailSubmit}
                 noValidate
               >
-                <p className={styles.otpDescription}>
+                <p className="text-sm leading-6 text-muted">
                   Enter your registered email address. We will send you a
                   password reset code.
                 </p>
 
-                <label className={styles.fieldLabel} htmlFor="resetEmail">
-                  Email address
-                </label>
+                <div>
+                  <label
+                    className="mb-1.5 block text-xs font-semibold text-text"
+                    htmlFor="resetEmail"
+                  >
+                    Email address
+                  </label>
 
-                <input
-                  id="resetEmail"
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  placeholder="Enter your registered email"
-                  className={styles.inputFiled}
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setNotice({ message: "", isError: false });
-                  }}
-                  maxLength={254}
-                  required
-                  disabled={isLoading}
-                />
+                  <input
+                    id="resetEmail"
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    placeholder="Enter your registered email"
+                    className={inputClass}
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setNotice({ message: "", isError: false });
+                    }}
+                    maxLength={254}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
 
                 <button
                   type="submit"
-                  className={styles.button}
+                  className={primaryButtonClass}
                   disabled={isLoading}
                 >
                   <span>
@@ -267,7 +278,7 @@ export default function ForgetPassword() {
 
                 <button
                   type="button"
-                  className={styles.backButton}
+                  className={backButtonClass}
                   onClick={() => router.push("/login")}
                   disabled={isLoading}
                 >
@@ -276,41 +287,50 @@ export default function ForgetPassword() {
               </form>
             ) : (
               <form
-                className={styles.inputContainer}
+                className="mt-6 flex flex-col gap-4"
                 onSubmit={handleVerifyOTP}
                 noValidate
               >
-                <p className={styles.otpDescription}>
-                  Enter the 6-digit code sent to:
-                </p>
+                <div>
+                  <p className="text-sm text-muted">
+                    Enter the 6-digit code sent to:
+                  </p>
 
-                <p className={styles.otpEmail}>{email}</p>
+                  <p className="mt-1 break-all text-sm font-semibold text-text">
+                    {email}
+                  </p>
+                </div>
 
-                <label className={styles.fieldLabel} htmlFor="resetOtp">
-                  Verification code
-                </label>
+                <div>
+                  <label
+                    className="mb-1.5 block text-xs font-semibold text-text"
+                    htmlFor="resetOtp"
+                  >
+                    Verification code
+                  </label>
 
-                <input
-                  id="resetOtp"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  placeholder="Enter 6-digit OTP"
-                  className={`${styles.inputFiled} ${styles.otpInput}`}
-                  value={otp}
-                  onChange={(e) => {
-                    setOtp(e.target.value.replace(/\D/g, "").slice(0, 6));
-                    setNotice({ message: "", isError: false });
-                  }}
-                  required
-                  aria-invalid={notice.isError}
-                  disabled={isLoading}
-                />
+                  <input
+                    id="resetOtp"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    placeholder="Enter 6-digit OTP"
+                    className={`${inputClass} text-center text-lg font-semibold tracking-[0.5em] placeholder:text-sm placeholder:font-normal placeholder:tracking-normal`}
+                    value={otp}
+                    onChange={(e) => {
+                      setOtp(e.target.value.replace(/\D/g, "").slice(0, 6));
+                      setNotice({ message: "", isError: false });
+                    }}
+                    required
+                    aria-invalid={notice.isError}
+                    disabled={isLoading}
+                  />
+                </div>
 
                 <button
                   type="submit"
-                  className={styles.button}
+                  className={primaryButtonClass}
                   disabled={isLoading || otp.length !== 6}
                 >
                   <span>
@@ -318,12 +338,12 @@ export default function ForgetPassword() {
                   </span>
                 </button>
 
-                <div className={styles.resendContainer}>
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                   <span>Didn't receive the code?</span>
 
                   <button
                     type="button"
-                    className={styles.textButton}
+                    className={linkButtonClass}
                     onClick={handleResendOTP}
                     disabled={isLoading || resendCooldown > 0}
                   >
@@ -337,7 +357,7 @@ export default function ForgetPassword() {
 
                 <button
                   type="button"
-                  className={styles.backButton}
+                  className={backButtonClass}
                   onClick={() => {
                     setShowOtpScreen(false);
                     setOtp("");
@@ -351,14 +371,13 @@ export default function ForgetPassword() {
             )}
           </div>
 
-          <div className={styles.cardContainer_right}>
-            <div>
-              <p>
-                {showOtpScreen
-                  ? "One more step to secure your account"
-                  : "Forgot your password? No worries. Let's get you back in."}
-              </p>
-            </div>
+          {/* Message side */}
+          <div className="flex items-center justify-center border-t border-border bg-primary p-8 text-center text-white dark:text-[#12141A] lg:border-l lg:border-t-0 lg:p-10">
+            <p className="max-w-[240px] font-serif text-xl font-bold leading-snug">
+              {showOtpScreen
+                ? "One more step to secure your account"
+                : "Forgot your password? No worries. Let's get you back in."}
+            </p>
           </div>
         </div>
       </div>

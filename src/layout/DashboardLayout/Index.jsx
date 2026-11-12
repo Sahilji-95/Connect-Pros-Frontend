@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import styles from "./dashboard.module.css";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
 
 import clientServer from "@/config";
@@ -31,6 +31,86 @@ const ALLOWED_NOTIFICATION_TYPES = [
   "new_post",
 ];
 
+const navigation = [
+  {
+    label: "Home",
+    href: "/dashboard",
+    icon: "home",
+  },
+  {
+    label: "Discover",
+    href: "/search",
+    icon: "search",
+  },
+  {
+    label: "Connections",
+    href: "/connections",
+    icon: "users",
+  },
+  {
+    label: "Messages",
+    href: "/chat",
+    icon: "message",
+  },
+  {
+    label: "Notifications",
+    href: "/notifications",
+    icon: "bell",
+  },
+];
+
+function Icon({ name, size = 20 }) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.7,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": true,
+  };
+
+  const icons = {
+    home: (
+      <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />
+    ),
+    search: (
+      <>
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-4-4" />
+      </>
+    ),
+    users: (
+      <>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="10" cy="7" r="4" />
+        <path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+      </>
+    ),
+    message: (
+      <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-4-.98L3 21l1.98-5.5A8.4 8.4 0 0 1 4 11.5 8.5 8.5 0 1 1 21 11.5Z" />
+    ),
+    bell: (
+      <>
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+        <path d="M10 21h4" />
+      </>
+    ),
+    arrow: <path d="M7 17 17 7M7 7h10v10" />,
+    usersGroup: (
+      <>
+        <circle cx="9" cy="8" r="3" />
+        <circle cx="17" cy="9" r="2.5" />
+        <path d="M3 20a6 6 0 0 1 12 0M15 16a5 5 0 0 1 6 4" />
+      </>
+    ),
+  };
+
+  return <svg {...common}>{icons[name]}</svg>;
+}
+
 export default function DashboardLayout({ children }) {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -44,16 +124,15 @@ export default function DashboardLayout({ children }) {
   const [chatPopup, setChatPopup] = useState(null);
   const [activityPopup, setActivityPopup] = useState(null);
 
-  const isNotifications = pathname?.startsWith("/notifications");
   const isAuthenticated = Boolean(authState?.profileFetched);
+  const isChat = pathname?.startsWith("/chat");
 
   const formatCount = (count) => (count > 99 ? "99+" : count);
 
-  const isChat = pathname?.startsWith("/chat");
-  const isHome = pathname === "/dashboard";
-  const isSearch = pathname?.startsWith("/search");
-  const isConnections = pathname?.startsWith("/connections");
+  const isActive = (href) =>
+    href === "/dashboard" ? pathname === href : pathname?.startsWith(href);
 
+  // Load notifications
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -93,6 +172,7 @@ export default function DashboardLayout({ children }) {
     };
   }, [isAuthenticated, dispatch]);
 
+  // Auto-close chat popup
   useEffect(() => {
     if (!chatPopup) return;
 
@@ -112,6 +192,7 @@ export default function DashboardLayout({ children }) {
     router.push("/notifications");
   };
 
+  // Socket and presence listeners
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -123,20 +204,25 @@ export default function DashboardLayout({ children }) {
       if (!ALLOWED_NOTIFICATION_TYPES.includes(notification.type)) {
         return;
       }
+
       dispatch(addNotification(notification));
       setActivityPopup(notification);
     };
+
     const handleConnect = () => {
       socket.emit("presence:get");
     };
+
     const handlePresenceInitial = ({ onlineUserIds = [] } = {}) => {
       dispatch(setOnlineUsers(onlineUserIds));
     };
+
     const handlePresenceUpdate = (data) => {
       if (!data?.userId) return;
 
       dispatch(updateUserPresence(data));
     };
+
     const handleChatPopup = (data) => {
       if (!data?.conversationId || !data?.message || !data?.sender) {
         return;
@@ -154,6 +240,7 @@ export default function DashboardLayout({ children }) {
     socket.on("presence:initial", handlePresenceInitial);
     socket.on("presence:update", handlePresenceUpdate);
     socket.on("chat:popup", handleChatPopup);
+
     if (!socket.connected) {
       socket.connect();
     } else {
@@ -166,6 +253,8 @@ export default function DashboardLayout({ children }) {
       socket.off("presence:initial", handlePresenceInitial);
       socket.off("presence:update", handlePresenceUpdate);
       socket.off("chat:popup", handleChatPopup);
+
+      // Shared socket intentionally remains connected.
     };
   }, [isAuthenticated, dispatch]);
 
@@ -183,8 +272,52 @@ export default function DashboardLayout({ children }) {
     setChatPopup(null);
   };
 
+  const SidebarLink = ({ item, mobile = false }) => {
+    const active = isActive(item.href);
+
+    return (
+      <Link
+        href={item.href}
+        aria-current={active ? "page" : undefined}
+        className={
+          mobile
+            ? `relative flex flex-1 flex-col items-center justify-center gap-1 rounded-lg py-2 text-[10px] font-semibold transition-colors ${
+                active ? "bg-primary-soft text-primary" : "text-muted"
+              }`
+            : `group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                active
+                  ? "bg-primary-soft text-primary"
+                  : "text-muted hover:bg-surface-muted hover:text-text"
+              }`
+        }
+      >
+        <span className="relative">
+          <Icon name={item.icon} size={mobile ? 21 : 20} />
+
+          {mobile &&
+            item.label === "Notifications" &&
+            notificationCount > 0 && (
+              <span className="absolute -right-2 -top-2 h-2 w-2 rounded-full bg-accent" />
+            )}
+        </span>
+
+        <span>{item.label}</span>
+
+        {!mobile && item.label === "Notifications" && notificationCount > 0 && (
+          <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-white dark:text-[#12141A]">
+            {formatCount(notificationCount)}
+          </span>
+        )}
+
+        {!mobile && active && (
+          <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+        )}
+      </Link>
+    );
+  };
+
   return (
-    <div>
+    <>
       <ChatMessagePopup
         popup={chatPopup}
         onClose={closeChatPopup}
@@ -197,197 +330,125 @@ export default function DashboardLayout({ children }) {
         onView={viewActivityNotifications}
       />
 
-      <div className={styles.container}>
+      <div
+        className={
+          isChat
+            ? "h-[calc(100dvh-140px)] overflow-hidden bg-app text-text lg:h-[calc(100dvh-76px)]"
+            : "min-h-[calc(100vh-76px)] bg-app text-text"
+        }
+      >
         <div
-          className={`${styles.homeContainer} ${isChat ? styles.chatMode : ""}`}
+          className={`mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:px-8 ${
+            isChat
+              ? "h-full min-h-0 overflow-hidden lg:grid-cols-[220px_minmax(0,1fr)]"
+              : "lg:grid-cols-[220px_minmax(0,1fr)_270px]"
+          }`}
         >
-          <div className={styles.left}>
-            <div
-              className={`${styles.sideBarOption} ${
-                isHome ? styles.active : ""
-              }`}
-              onClick={() => router.push("/dashboard")}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="size-6"
+          {/* Desktop sidebar */}
+          <aside className="hidden lg:block">
+            {/*
+              FIX: On the chat page the grid has overflow-hidden, which makes it
+              the sticky scroll container. `sticky top-[100px]` then pushed the
+              menu ~76px down. Sticky is only needed on scrolling pages, so on
+              chat the sidebar stays in normal flow (same spot as other pages).
+            */}
+            <div className={isChat ? "" : "sticky top-[100px]"}>
+              <nav
+                className="flex flex-col gap-1"
+                aria-label="Dashboard navigation"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-                />
-              </svg>
-
-              <p>Home</p>
+                {navigation.map((item) => (
+                  <SidebarLink key={item.href} item={item} />
+                ))}
+              </nav>
             </div>
+          </aside>
 
-            <div
-              className={`${styles.sideBarOption} ${
-                isSearch ? styles.active : ""
-              }`}
-              onClick={() => router.push("/search")}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="size-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                />
-              </svg>
+          {/* Main content */}
+          <main
+            className={
+              isChat
+                ? "h-full min-h-0 min-w-0 overflow-hidden pb-0"
+                : "min-w-0 pb-24 lg:pb-8"
+            }
+          >
+            {children}
+          </main>
 
-              <p>Discover</p>
-            </div>
-
-            <div
-              className={`${styles.sideBarOption} ${
-                isConnections ? styles.active : ""
-              }`}
-              onClick={() => router.push("/connections")}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="size-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                />
-              </svg>
-
-              <p>Connections</p>
-            </div>
-
-            <div
-              className={`${styles.sideBarOption} ${
-                isChat ? styles.active : ""
-              }`}
-              onClick={() => router.push("/chat")}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="size-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
-                />
-              </svg>
-
-              <p>Messages</p>
-            </div>
-
-            <div
-              className={`${styles.sideBarOption} ${
-                isNotifications ? styles.active : ""
-              }`}
-              onClick={() => router.push("/notifications")}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="size-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
-                />
-              </svg>
-
-              <p>Notifications</p>
-
-              {notificationCount > 0 && (
-                <span
-                  style={{
-                    marginLeft: "auto",
-                    minWidth: "22px",
-                    height: "22px",
-                    padding: "0 6px",
-                    borderRadius: "999px",
-                    background: "#6366f1",
-                    color: "#fff",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                  }}
-                >
-                  {formatCount(notificationCount)}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className={styles.feed}>{children}</div>
-
+          {/* Right profile panel */}
           {!isChat && (
-            <div className={styles.right}>
-              <h1 className={styles.rightTitle}>Top Profiles</h1>
+            <aside className="hidden lg:block">
+              <div className="sticky top-[100px] rounded-card border border-border bg-surface p-5">
+                <div className="mb-5">
+                  <h2 className="mt-2 font-serif text-xl font-bold text-text">
+                    People to know.
+                  </h2>
+                </div>
 
-              <div className={styles.profileList}>
-                {authState.all_profiles_fetched &&
-                  authState.all_profiles?.map((profile) => (
-                    <div
-                      className={styles.profileCard}
-                      key={profile._id}
-                      onClick={() =>
-                        router.push(`/view_profile/${profile.userId.username}`)
-                      }
-                    >
-                      <img
-                        className={styles.profileImage}
-                        src={
-                          profile.userId?.profilePicture
-                            ? profile.userId.profilePicture
-                            : "/default-avatar.png"
-                        }
-                        alt={profile.userId?.name || "Profile"}
-                      />
+                <div className="flex flex-col">
+                  {authState.all_profiles_fetched &&
+                    authState.all_profiles?.map((profile) => {
+                      const profileUser = profile.userId;
 
-                      <div className={styles.profileInfo}>
-                        <p className={styles.profileName}>
-                          {profile.userId?.name || "Unknown User"}
-                        </p>
+                      if (!profileUser) return null;
 
-                        <p className={styles.profileUsername}>
-                          @{profile.userId?.username || "username"}
-                        </p>
-                      </div>
+                      return (
+                        <button
+                          type="button"
+                          key={profile._id}
+                          onClick={() =>
+                            router.push(`/view_profile/${profileUser.username}`)
+                          }
+                          className="group flex w-full items-center gap-3 border-t border-border py-3 text-left transition-colors first:border-t-0 hover:bg-surface-muted"
+                        >
+                          <img
+                            src={
+                              profileUser.profilePicture ||
+                              "/default-avatar.png"
+                            }
+                            alt={profileUser.name || "Profile"}
+                            className="h-10 w-10 shrink-0 rounded-full border border-border object-cover"
+                          />
 
-                      <span className={styles.profileArrow}>↗</span>
-                    </div>
-                  ))}
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-semibold text-text">
+                              {profileUser.name || "Unknown User"}
+                            </span>
+
+                            <span className="mt-0.5 block truncate text-xs text-muted">
+                              @{profileUser.username || "username"}
+                            </span>
+                          </span>
+
+                          <span className="text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary">
+                            <Icon name="arrow" size={16} />
+                          </span>
+                        </button>
+                      );
+                    })}
+
+                  {!authState.all_profiles?.length &&
+                    authState.all_profiles_fetched && (
+                      <p className="py-5 text-center text-xs text-muted">
+                        No profiles available right now.
+                      </p>
+                    )}
+                </div>
               </div>
-            </div>
+            </aside>
           )}
         </div>
       </div>
-    </div>
+
+      {/* Mobile bottom navigation */}
+      <nav
+        aria-label="Mobile dashboard navigation"
+        className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-surface/95 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur-xl lg:hidden"
+      >
+        {navigation.map((item) => (
+          <SidebarLink key={item.href} item={item} mobile />
+        ))}
+      </nav>
+    </>
   );
 }

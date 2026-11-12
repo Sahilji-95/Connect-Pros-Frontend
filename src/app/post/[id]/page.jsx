@@ -9,7 +9,6 @@ import {
   incrementPostLike,
   postComment,
 } from "@/config/redux/action/postAction";
-import styles from "./page.module.css";
 
 const ArrowLeftIcon = () => (
   <svg
@@ -18,7 +17,7 @@ const ArrowLeftIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={1.8}
     stroke="currentColor"
-    aria-hidden="true"
+    className="h-4 w-4"
   >
     <path
       strokeLinecap="round"
@@ -35,7 +34,7 @@ const HeartIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={1.7}
     stroke="currentColor"
-    aria-hidden="true"
+    className="h-[18px] w-[18px]"
   >
     <path
       strokeLinecap="round"
@@ -52,7 +51,7 @@ const CommentIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={1.7}
     stroke="currentColor"
-    aria-hidden="true"
+    className="h-[18px] w-[18px]"
   >
     <path
       strokeLinecap="round"
@@ -68,6 +67,7 @@ export default function PostDetailsPage() {
   const dispatch = useDispatch();
 
   const id = params?.id;
+
   const [commentText, setCommentText] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
   const [commentError, setCommentError] = useState("");
@@ -122,12 +122,14 @@ export default function PostDetailsPage() {
     }
   };
 
+  const handleBack = () => router.back();
+
   if (currentPostLoading) {
     return (
-      <main className={styles.statusPage}>
-        <div className={styles.loader}>
-          <span className={styles.spinner} aria-hidden="true" />
-          <p className={styles.statusText}>Loading post...</p>
+      <main className="flex min-h-[70vh] items-center justify-center bg-app px-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-border border-t-primary" />
+          <p className="text-sm text-muted">Loading post...</p>
         </div>
       </main>
     );
@@ -135,16 +137,26 @@ export default function PostDetailsPage() {
 
   if (currentPostError || !currentPost) {
     return (
-      <main className={styles.statusPage}>
-        <div className={styles.errorCard}>
-          <div className={styles.errorIcon} aria-hidden="true">
+      <main className="flex min-h-[70vh] items-center justify-center bg-app px-4 py-10">
+        <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-6 text-center">
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-danger/10 text-xl font-bold text-danger">
             !
           </div>
-          <h2>Post unavailable</h2>
-          <p>{currentPostError || "Post not found"}</p>
-          <button className={styles.backButton} onClick={() => router.back()}>
+
+          <h2 className="mt-4 text-lg font-semibold text-text">
+            Post unavailable
+          </h2>
+
+          <p className="mt-2 break-words text-sm text-muted">
+            {currentPostError || "Post not found"}
+          </p>
+
+          <button
+            onClick={handleBack}
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+          >
             <ArrowLeftIcon />
-            <span>Go back</span>
+            Go back
           </button>
         </div>
       </main>
@@ -154,162 +166,190 @@ export default function PostDetailsPage() {
   const author = currentPost.userId;
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        <button className={styles.backButton} onClick={() => router.back()}>
+    <main className="min-h-screen bg-app px-3 py-5 sm:px-5 sm:py-8">
+      <div className="mx-auto w-full max-w-3xl">
+        {/* Back button */}
+        <button
+          onClick={handleBack}
+          className="mb-4 inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-muted transition hover:bg-surface hover:text-text"
+        >
           <ArrowLeftIcon />
-          <span>Back</span>
+          Back
         </button>
 
-        <article className={styles.postCard}>
-          <div className={styles.authorSection}>
+        {/* Post card */}
+        <article className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+          {/* Author section */}
+          <div className="flex min-w-0 items-center gap-3 px-4 py-4 sm:px-5">
             <img
-              className={styles.avatar}
               src={author?.profilePicture || "/default-avatar.png"}
-              alt="Profile"
-              width={48}
-              height={48}
+              alt={author?.name || "Profile"}
+              className="h-10 w-10 shrink-0 rounded-full object-cover"
             />
 
-            <div className={styles.authorInfo}>
-              <strong className={styles.authorName}>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-text">
                 {author?.name || "Unknown user"}
-              </strong>
+              </p>
 
-              <span className={styles.username}>
+              <p className="truncate text-xs text-muted">
                 @{author?.username || "unknown"}
-              </span>
+              </p>
             </div>
 
-            <span className={styles.date}>
+            <span className="max-w-[110px] shrink-0 text-right text-[10px] leading-4 text-muted sm:max-w-none sm:text-xs">
               {currentPost.createdAt
-                ? new Date(currentPost.createdAt).toLocaleString("en-IN")
+                ? new Date(currentPost.createdAt).toLocaleString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
                 : ""}
             </span>
           </div>
 
-          <p className={styles.postBody}>{currentPost.body}</p>
+          {/* Post body */}
+          {currentPost.body && (
+            <div className="px-4 pb-4 sm:px-5">
+              <p className="whitespace-pre-wrap break-words text-sm leading-6 text-text sm:text-[15px]">
+                {currentPost.body}
+              </p>
+            </div>
+          )}
 
+          {/* Post media */}
           {currentPost.media && (
-            <div className={styles.mediaContainer}>
+            <div className="w-full overflow-hidden bg-app">
               <img
-                className={styles.postMedia}
                 src={currentPost.media}
                 alt="Post media"
+                className="mx-auto max-h-[650px] w-full object-contain"
               />
             </div>
           )}
 
-          <div className={styles.postStats}>
+          {/* Stats */}
+          <div className="flex items-center justify-between border-b border-border px-4 py-3 text-xs text-muted sm:px-5">
             <span>{currentPost.likes ?? 0} likes</span>
             <span>{comment?.length ?? 0} comments</span>
           </div>
 
-          <div className={styles.postActions}>
+          {/* Actions */}
+          <div className="grid grid-cols-2 gap-2 px-3 py-2 sm:px-5">
             <button
-              className={`${styles.actionButton} ${
-                currentPost.isLiked ? styles.liked : ""
-              }`}
               onClick={handleLike}
+              className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition hover:bg-app ${
+                currentPost.isLiked
+                  ? "text-primary"
+                  : "text-muted hover:text-text"
+              }`}
             >
               <HeartIcon />
-              <span>{currentPost.isLiked ? "Unlike" : "Like"}</span>
+              {currentPost.isLiked ? "Unlike" : "Like"}
             </button>
 
             <button
-              className={styles.actionButton}
               onClick={() => document.getElementById("comment-input")?.focus()}
+              className="flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium text-muted transition hover:bg-app hover:text-text"
             >
               <CommentIcon />
-              <span>Comment</span>
+              Comment
             </button>
           </div>
 
-          <section className={styles.commentsSection}>
-            <h3 className={styles.commentsTitle}>
-              Comments
-              <span className={styles.commentsCount}>
+          {/* Comments section */}
+          <section className="border-t border-border px-4 py-5 sm:px-5">
+            <div className="mb-4 flex items-center gap-2">
+              <h3 className="text-base font-semibold text-text">Comments</h3>
+
+              <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[11px] font-semibold text-primary">
                 {comment?.length ?? 0}
               </span>
-            </h3>
+            </div>
 
-            <form onSubmit={handleComment} className={styles.commentForm}>
+            {/* Comment form */}
+            <form onSubmit={handleComment} className="mb-5">
               <textarea
                 id="comment-input"
-                className={styles.commentInput}
                 value={commentText}
                 onChange={(event) => setCommentText(event.target.value)}
                 placeholder="Write a comment..."
-                rows={3}
+                rows={2}
                 maxLength={2000}
+                className="min-h-[76px] w-full resize-y rounded-xl border border-border bg-app px-3 py-3 text-sm text-text outline-none transition placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/10"
               />
 
               {commentError && (
-                <p className={styles.commentError} role="alert">
+                <p className="mt-2 text-xs text-danger" role="alert">
                   {commentError}
                 </p>
               )}
 
-              <div className={styles.formFooter}>
-                <span className={styles.charCount}>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <span className="text-[11px] text-muted">
                   {commentText.length}/2000
                 </span>
 
                 <button
-                  className={styles.submitButton}
                   type="submit"
                   disabled={commentLoading || !commentText.trim()}
+                  className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
                 >
                   {commentLoading ? "Posting..." : "Post comment"}
                 </button>
               </div>
             </form>
 
-            <div className={styles.commentsList}>
+            {/* Comments list */}
+            <div className="max-h-[420px] space-y-3 overflow-y-auto overscroll-contain pr-1">
               {comment?.length ? (
                 comment.map((item) => (
-                  <div className={styles.commentItem} key={item._id}>
-                    <div className={styles.commentAvatar} aria-hidden="true">
-                      {item.userId?.profilePicture ? (
-                        <img
-                          className={styles.commentAvatar}
-                          src={item.userId.profilePicture}
-                          alt={item.userId?.name || "User"}
-                        />
-                      ) : (
-                        <div
-                          className={styles.commentAvatar}
-                          aria-hidden="true"
-                        >
-                          {(item.userId?.name || "U").charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
+                  <div
+                    key={item._id}
+                    className="flex min-w-0 items-start gap-2.5"
+                  >
+                    {item.userId?.profilePicture ? (
+                      <img
+                        src={item.userId.profilePicture}
+                        alt={item.userId?.name || "User"}
+                        className="h-8 w-8 shrink-0 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-primary">
+                        {(item.userId?.name || "U").charAt(0).toUpperCase()}
+                      </div>
+                    )}
 
-                    <div className={styles.commentContent}>
-                      <div className={styles.commentHeader}>
-                        <strong className={styles.commentAuthor}>
+                    <div className="min-w-0 flex-1 rounded-xl bg-app px-3 py-2">
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <p className="max-w-full truncate text-xs font-semibold text-text">
                           {item.userId?.name || "User"}
-                        </strong>
+                        </p>
 
-                        <span
-                          className={styles.commentUsername}
-                          onClick={() => {
-                            router.push(
-                              `/view_profile/${item.userId?.username}`,
-                            );
-                          }}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            item.userId?.username &&
+                            router.push(`/view_profile/${item.userId.username}`)
+                          }
+                          className="max-w-full truncate text-[11px] text-primary hover:underline"
                         >
                           @{item.userId?.username || "user"}
-                        </span>
+                        </button>
                       </div>
 
-                      <p className={styles.commentBody}>{item.body}</p>
+                      <p className="mt-1 whitespace-pre-wrap break-words text-[13px] leading-5 text-text">
+                        {item.body}
+                      </p>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className={styles.noComments}>No comments yet.</p>
+                <p className="py-6 text-center text-xs text-muted">
+                  No comments yet. Be the first to comment!
+                </p>
               )}
             </div>
           </section>

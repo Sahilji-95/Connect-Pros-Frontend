@@ -3,13 +3,21 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
+import { LoaderCircle, Pencil } from "lucide-react";
 
 import {
   getAboutUser,
   uploadProfilePicture,
 } from "@/config/redux/action/authAction";
 
-import styles from "./profile.module.css";
+// Shared style tokens
+const sectionCard = "rounded-card border border-border bg-surface p-5 sm:p-6";
+
+const sectionTitle = "font-serif text-xl font-bold text-text";
+
+const detailLabel = "text-xs font-semibold text-muted";
+
+const detailValue = "mt-1 break-words text-sm text-text";
 
 export default function Profile() {
   const dispatch = useDispatch();
@@ -73,56 +81,68 @@ export default function Profile() {
 
   if (authState.isLoading && !user) {
     return (
-      <main className={styles.page}>
-        <p className={styles.status}>Loading your profile...</p>
+      <main
+        role="status"
+        className="flex min-h-screen flex-col items-center justify-center gap-3 bg-app text-text"
+      >
+        <LoaderCircle size={24} className="animate-spin text-primary" />
+        <p className="text-sm text-muted">Loading your profile...</p>
       </main>
     );
   }
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        <header className={styles.pageHeader}>
+    <main className="min-h-screen bg-app text-text">
+      <div className="mx-auto flex w-full max-w-[920px] flex-col gap-5 px-4 py-8 sm:px-6 sm:py-12">
+        {/* Page header */}
+        <header className="flex items-center justify-between gap-4">
           <div>
-            <p className={styles.eyebrow}>ACCOUNT</p>
-            <h1 className={styles.pageTitle}>My Profile</h1>
-            <p className={styles.pageDescription}>
+            <h1 className="font-serif text-2xl font-bold tracking-tight text-text sm:text-3xl">
+              My Profile
+            </h1>
+
+            <p className="mt-1 text-sm text-muted">
               Manage your personal information and profile picture.
             </p>
           </div>
 
-          <div
-            className={styles.editButton}
+          <button
+            type="button"
             onClick={() => {
               router.push("/profile/edit-profile");
             }}
+            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-control border border-border bg-surface px-4 text-sm font-semibold text-text transition hover:border-primary/40 hover:text-primary"
           >
+            <Pencil size={15} />
             Edit Profile
-          </div>
+          </button>
         </header>
 
-        <section className={styles.profileCard}>
-          <div className={styles.profileHeader}>
-            <div className={styles.avatarSection}>
-              <img
-                src={preview || user?.profilePicture || "/default.png"}
-                alt="Profile"
-                className={styles.avatar}
-              />
+        {/* Profile + picture upload */}
+        <section className={sectionCard}>
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+            <img
+              src={preview || user?.profilePicture || "/default.png"}
+              alt="Profile"
+              className="h-24 w-24 shrink-0 rounded-full border border-border object-cover sm:h-28 sm:w-28"
+            />
 
-              <div className={styles.avatarInfo}>
-                <h2 className={styles.name}>{user?.name || "Your Name"}</h2>
-                <p className={styles.username}>
-                  @{user?.username || "username"}
-                </p>
-              </div>
+            <div className="min-w-0">
+              <h2 className="break-words font-serif text-2xl font-bold tracking-tight text-text">
+                {user?.name || "Your Name"}
+              </h2>
+
+              <p className="mt-1 text-sm text-muted">
+                @{user?.username || "username"}
+              </p>
             </div>
-
-            <span className={styles.profileBadge}>My Account</span>
           </div>
 
-          <div className={styles.uploadSection}>
-            <label htmlFor="profilePicture" className={styles.fileLabel}>
+          <div className="mt-6 border-t border-border pt-5">
+            <label
+              htmlFor="profilePicture"
+              className="block text-sm font-semibold text-text"
+            >
               Choose a new profile picture
             </label>
 
@@ -131,10 +151,10 @@ export default function Profile() {
               type="file"
               accept="image/*"
               onChange={handleImageChange}
-              className={styles.fileInput}
+              className="mt-2.5 block w-full max-w-md cursor-pointer text-sm text-muted file:mr-3 file:cursor-pointer file:rounded-control file:border-0 file:bg-primary-soft file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary-soft/70"
             />
 
-            <p className={styles.helperText}>
+            <p className="mt-2 text-xs text-muted">
               JPG, PNG or other supported image formats. Maximum 5 MB.
             </p>
 
@@ -143,16 +163,23 @@ export default function Profile() {
                 type="button"
                 onClick={handleUpload}
                 disabled={uploading}
-                className={styles.primaryButton}
+                className="mt-4 inline-flex h-10 items-center gap-2 rounded-control bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 dark:text-[#12141A]"
               >
+                {uploading && (
+                  <LoaderCircle size={15} className="animate-spin" />
+                )}
                 {uploading ? "Uploading..." : "Save Picture"}
               </button>
             )}
 
-            {error && <p className={styles.error}>{error}</p>}
+            {error && (
+              <p className="mt-3 text-xs text-danger" role="alert">
+                {error}
+              </p>
+            )}
 
             {authState.isError && authState.message && (
-              <p className={styles.error}>
+              <p className="mt-3 text-xs text-danger" role="alert">
                 {typeof authState.message === "string"
                   ? authState.message
                   : authState.message?.message}
@@ -161,146 +188,131 @@ export default function Profile() {
           </div>
         </section>
 
-        <section className={styles.detailsCard}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2 className={styles.sectionTitle}>Personal Information</h2>
-              <p className={styles.sectionDescription}>
-                Your basic account details.
-              </p>
-            </div>
-          </div>
+        {/* Personal information */}
+        <section className={sectionCard}>
+          <h2 className={sectionTitle}>Personal Information</h2>
 
-          <div className={styles.detailsGrid}>
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Full Name</span>
-              <p className={styles.detailValue}>
-                {user?.name || "Not provided"}
-              </p>
+          <dl className="mt-4 grid gap-5 sm:grid-cols-3">
+            <div className="min-w-0">
+              <dt className={detailLabel}>Full Name</dt>
+              <dd className={detailValue}>{user?.name || "Not provided"}</dd>
             </div>
 
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Username</span>
-              <p className={styles.detailValue}>
+            <div className="min-w-0">
+              <dt className={detailLabel}>Username</dt>
+              <dd className={detailValue}>
                 {user?.username ? `@${user.username}` : "Not provided"}
-              </p>
+              </dd>
             </div>
 
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Email Address</span>
-              <p className={styles.detailValue}>
-                {user?.email || "Not provided"}
-              </p>
+            <div className="min-w-0">
+              <dt className={detailLabel}>Email Address</dt>
+              <dd className={detailValue}>{user?.email || "Not provided"}</dd>
             </div>
-          </div>
+          </dl>
         </section>
 
-        <section className={styles.detailsCard}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2 className={styles.sectionTitle}>About</h2>
-              <p className={styles.sectionDescription}>
-                A little more about you.
-              </p>
-            </div>
-          </div>
+        {/* About */}
+        <section className={sectionCard}>
+          <h2 className={sectionTitle}>About</h2>
 
-          <div className={styles.aboutGrid}>
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Bio</span>
-              <p className={styles.detailValue}>
+          <dl className="mt-4 grid gap-5 sm:grid-cols-2">
+            <div className="min-w-0">
+              <dt className={detailLabel}>Bio</dt>
+              <dd className={`${detailValue} whitespace-pre-wrap leading-6`}>
                 {authState.user?.bio || "No bio added yet."}
-              </p>
+              </dd>
             </div>
 
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Current Post</span>
-              <p className={styles.detailValue}>
+            <div className="min-w-0">
+              <dt className={detailLabel}>Current Post</dt>
+              <dd className={detailValue}>
                 {authState.user?.currentPost || "Not specified"}
-              </p>
+              </dd>
             </div>
-          </div>
+          </dl>
         </section>
 
-        <section className={styles.detailsCard}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2 className={styles.sectionTitle}>Education</h2>
-              <p className={styles.sectionDescription}>
-                Your educational background.
-              </p>
-            </div>
-          </div>
+        {/* Education */}
+        <section className={sectionCard}>
+          <h2 className={sectionTitle}>Education</h2>
 
           {authState.user?.education?.length > 0 ? (
-            <div className={styles.timeline}>
+            <div className="ml-1.5 mt-5 border-l border-border">
               {authState.user.education.map((item, index) => (
-                <div className={styles.timelineItem} key={item._id || index}>
-                  <div className={styles.timelineDot} />
+                <div
+                  className="relative pb-6 pl-6 last:pb-0"
+                  key={item._id || index}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="absolute -left-[5.5px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-surface"
+                  />
 
-                  <div className={styles.timelineContent}>
-                    <h3 className={styles.itemTitle}>
-                      College / School -{" "}
-                      {item.school ||
-                        item.institution ||
-                        item.college ||
-                        "Institution"}
-                    </h3>
+                  <h3 className="break-words text-base font-semibold text-text">
+                    {item.school ||
+                      item.institution ||
+                      item.college ||
+                      "Institution"}
+                  </h3>
 
-                    <p className={styles.detailValue}>
-                      Degree -{" "}
-                      {item.degree ||
-                        item.qualification ||
-                        "Degree not specified"}
+                  <p className="mt-0.5 text-sm text-text">
+                    {item.degree ||
+                      item.qualification ||
+                      "Degree not specified"}
+                  </p>
+
+                  {(item.fieldOfStudy || item.description) && (
+                    <p className="mt-0.5 text-xs text-muted">
+                      {item.fieldOfStudy || item.description}
                     </p>
-
-                    {(item.fieldOfStudy || item.description) && (
-                      <p className={styles.itemDescription}>
-                        Streame - {item.fieldOfStudy || item.description}
-                      </p>
-                    )}
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
           ) : (
-            <p className={styles.emptyState}>No education details added yet.</p>
+            <p className="mt-3 text-sm text-muted">
+              No education details added yet.
+            </p>
           )}
         </section>
 
-        <section className={styles.detailsCard}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2 className={styles.sectionTitle}>Past Work</h2>
-              <p className={styles.sectionDescription}>
-                Your professional experience.
-              </p>
-            </div>
-          </div>
+        {/* Past work */}
+        <section className={sectionCard}>
+          <h2 className={sectionTitle}>Past Work</h2>
 
           {authState.user?.pastWork?.length > 0 ? (
-            <div className={styles.timeline}>
+            <div className="ml-1.5 mt-5 border-l border-border">
               {authState.user.pastWork.map((item, index) => (
-                <div className={styles.timelineItem} key={item._id || index}>
-                  <div className={styles.timelineDot} />
+                <div
+                  className="relative pb-6 pl-6 last:pb-0"
+                  key={item._id || index}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="absolute -left-[5.5px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-surface"
+                  />
 
-                  <div className={styles.timelineContent}>
-                    <h3 className={styles.itemTitle}>
-                      Organization - {item.pastWork || "Organization"}
-                    </h3>
-                    <p className={styles.detailValue}>
-                      Position - {item.position || "Role not specified"}
+                  <h3 className="break-words text-base font-semibold text-text">
+                    {item.pastWork || "Organization"}
+                  </h3>
+
+                  <p className="mt-0.5 text-sm text-text">
+                    {item.position || "Role not specified"}
+                  </p>
+
+                  {item.years && (
+                    <p className="mt-0.5 text-xs text-muted">
+                      Duration: {item.years}
                     </p>
-                    Duration -{" "}
-                    {item.years && (
-                      <span className={styles.itemDate}>{item.years}</span>
-                    )}
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
           ) : (
-            <p className={styles.emptyState}>No past work details added yet.</p>
+            <p className="mt-3 text-sm text-muted">
+              No past work details added yet.
+            </p>
           )}
         </section>
       </div>

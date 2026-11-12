@@ -4,7 +4,6 @@ import React, { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import clientServer from "@/config";
-import styles from "./notification.module.css";
 import UserLayOut from "@/layout/UserLayout/Index";
 import DashboardLayout from "@/layout/DashboardLayout/Index";
 
@@ -13,6 +12,19 @@ import {
   markAllNotificationsRead,
   setNotificationError,
 } from "@/config/redux/reducer/NotiReducer/index.js";
+
+import {
+  Bell,
+  BellOff,
+  CheckCheck,
+  FileText,
+  Heart,
+  LoaderCircle,
+  MessageCircle,
+  UserCheck,
+  UserPlus,
+  X,
+} from "lucide-react";
 
 // Only these 5 notification types are allowed.
 const ALLOWED_NOTIFICATION_TYPES = [
@@ -31,20 +43,13 @@ const notificationLabels = {
   post_comment: "New comment",
 };
 
-// Small icon (12px) shown on the avatar corner for each type.
-const typeIconPaths = {
-  connection_request:
-    "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Z",
-
-  connection_accepted: "m4.5 12.75 6 6 9-13.5",
-
-  new_post: "M12 4.5v15m7.5-7.5h-15",
-
-  post_like:
-    "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z",
-
-  post_comment:
-    "M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z",
+// Icon + badge colour for each notification type.
+const typeConfig = {
+  connection_request: { Icon: UserPlus, badge: "bg-primary" },
+  connection_accepted: { Icon: UserCheck, badge: "bg-primary" },
+  new_post: { Icon: FileText, badge: "bg-accent" },
+  post_like: { Icon: Heart, badge: "bg-danger" },
+  post_comment: { Icon: MessageCircle, badge: "bg-primary" },
 };
 
 // Notification click par kahan jana hai.
@@ -91,23 +96,17 @@ const formatDate = (date) => {
   });
 };
 
-function TypeIcon({ type }) {
-  const path = typeIconPaths[type] || typeIconPaths.new_post;
+function TypeBadge({ type }) {
+  const config = typeConfig[type] || typeConfig.new_post;
+  const { Icon, badge } = config;
 
   return (
-    <span className={styles.typeIcon} data-type={type} aria-hidden="true">
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d={path} />
-      </svg>
+    <span
+      aria-hidden="true"
+      data-type={type}
+      className={`absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-surface text-white ${badge}`}
+    >
+      <Icon size={11} strokeWidth={2.4} />
     </span>
   );
 }
@@ -232,51 +231,59 @@ export default function NotificationsPage() {
     dispatch(setNotificationError(null));
   };
 
+  const filterButtonClass = (active) =>
+    `flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
+      active
+        ? "bg-primary-soft text-primary"
+        : "text-muted hover:bg-app hover:text-text"
+    }`;
+
   return (
     <UserLayOut>
       <DashboardLayout>
-        <main className={styles.page}>
-          <section className={styles.header}>
-            <div>
-              <h1 className={styles.title}>Notifications</h1>
+        <div className="min-w-0 text-text">
+          {/* Header */}
+          <section className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                <Bell size={20} />
+              </div>
 
-              <p className={styles.subtitle}>
-                Stay updated with your Connect Pros activity.
-              </p>
+              <div>
+                <p className="text-[10px] font-bold tracking-[1.5px] text-muted">
+                  YOUR ACTIVITY
+                </p>
+
+                <h1 className="mt-0.5 text-xl font-bold tracking-tight text-text">
+                  Notifications
+                </h1>
+              </div>
             </div>
 
             <button
               type="button"
-              className={styles.markAllButton}
               onClick={handleMarkAllRead}
               disabled={unreadCount === 0 || markingAll || Boolean(updatingId)}
+              className="flex h-10 shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-border bg-surface px-4 text-xs font-semibold text-text transition hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 sm:self-auto"
             >
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="m4.5 12.75 6 6 9-13.5" />
-              </svg>
+              {markingAll ? (
+                <LoaderCircle size={15} className="animate-spin" />
+              ) : (
+                <CheckCheck size={15} />
+              )}
 
               {markingAll ? "Updating..." : "Mark all as read"}
             </button>
           </section>
 
-          <section className={styles.panel}>
-            <div className={styles.toolbar}>
-              <div className={styles.filters}>
+          {/* Panel */}
+          <section className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-3 sm:px-5">
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  className={`${styles.filterButton} ${
-                    filter === "all" ? styles.activeFilter : ""
-                  }`}
+                  className={filterButtonClass(filter === "all")}
                   onClick={() => setFilter("all")}
                   aria-pressed={filter === "all"}
                 >
@@ -285,79 +292,68 @@ export default function NotificationsPage() {
 
                 <button
                   type="button"
-                  className={`${styles.filterButton} ${
-                    filter === "unread" ? styles.activeFilter : ""
-                  }`}
+                  className={filterButtonClass(filter === "unread")}
                   onClick={() => setFilter("unread")}
                   aria-pressed={filter === "unread"}
                 >
                   Unread
                   {unreadCount > 0 && (
-                    <span className={styles.countBadge}>
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white dark:text-[#12141A]">
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
                 </button>
               </div>
 
-              <span className={styles.totalText}>
+              <span className="text-[11px] text-muted">
                 {allowedNotifications.length} loaded
               </span>
             </div>
 
+            {/* Error */}
             {error && (
-              <div role="alert" className={styles.error}>
+              <div
+                role="alert"
+                className="mx-3 mt-3 flex items-center justify-between gap-2 rounded-lg border border-danger/20 bg-danger/5 px-3 py-2 text-[11px] text-danger sm:mx-5"
+              >
                 <span>{error}</span>
 
                 <button
                   type="button"
                   onClick={dismissError}
-                  className={styles.dismissButton}
                   aria-label="Dismiss error"
                 >
-                  ×
+                  <X size={14} />
                 </button>
               </div>
             )}
 
+            {/* Content */}
             {loading && notifications.length === 0 ? (
-              <div className={styles.emptyState}>
-                <p className={styles.emptyTitle}>Loading notifications...</p>
+              <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
+                <LoaderCircle size={22} className="animate-spin text-primary" />
+                <p className="text-xs text-muted">Loading notifications...</p>
               </div>
             ) : visibleNotifications.length === 0 ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>
-                  <svg
-                    width="30"
-                    height="30"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9a6 6 0 0 0-12 0v.75a8.967 8.967 0 0 1-2.311 6.022 23.848 23.848 0 0 0 5.454 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
-                    />
-                  </svg>
+              <div className="flex flex-col items-center px-5 py-16 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">
+                  <BellOff size={26} strokeWidth={1.5} />
                 </div>
 
-                <h2 className={styles.emptyTitle}>
+                <h2 className="mt-4 text-base font-bold text-text">
                   {filter === "unread"
                     ? "You're all caught up!"
                     : "No notifications yet"}
                 </h2>
 
-                <p className={styles.emptyText}>
+                <p className="mt-1.5 max-w-xs text-xs leading-5 text-muted">
                   {filter === "unread"
                     ? "You have no unread notifications."
                     : "Connection requests, likes, comments and new posts will appear here."}
                 </p>
               </div>
             ) : (
-              <div>
+              <div className="divide-y divide-border">
                 {visibleNotifications.map((notification) => {
                   const sender =
                     notification.sender &&
@@ -374,9 +370,6 @@ export default function NotificationsPage() {
                   return (
                     <article
                       key={notification._id}
-                      className={`${styles.notification} ${
-                        !notification.isRead ? styles.unreadNotification : ""
-                      } ${styles.clickable}`}
                       role="link"
                       tabIndex={0}
                       aria-label={`${senderName}: ${
@@ -387,62 +380,86 @@ export default function NotificationsPage() {
                       onKeyDown={(event) =>
                         handleRowKeyDown(event, notification)
                       }
+                      className={`relative flex cursor-pointer items-start gap-3.5 px-3 py-4 outline-none transition focus-visible:bg-app sm:px-5 ${
+                        !notification.isRead
+                          ? "bg-primary-soft/40 hover:bg-primary-soft/60"
+                          : "hover:bg-app"
+                      }`}
                     >
-                      <div className={styles.avatarWrapper}>
+                      {/* Unread accent bar */}
+                      {!notification.isRead && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute inset-y-0 left-0 w-[3px] bg-primary"
+                        />
+                      )}
+
+                      {/* Avatar */}
+                      <div className="relative shrink-0">
                         {avatar ? (
                           <img
                             src={avatar}
                             alt={senderName}
-                            className={styles.avatar}
+                            className="h-11 w-11 rounded-full border border-border object-cover"
+                            loading="lazy"
                           />
                         ) : (
                           <div
-                            className={styles.avatarFallback}
+                            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-primary-soft text-sm font-bold text-primary"
                             aria-label={senderName}
                           >
                             {senderName.charAt(0).toUpperCase()}
                           </div>
                         )}
 
-                        <TypeIcon type={notification.type} />
+                        <TypeBadge type={notification.type} />
                       </div>
 
-                      <div className={styles.notificationContent}>
-                        <div className={styles.notificationTop}>
-                          <span className={styles.typeLabel}>
+                      {/* Content */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold uppercase tracking-[1.2px] text-muted">
                             {notificationLabels[notification.type]}
                           </span>
 
                           {!notification.isRead && (
-                            <span title="Unread" className={styles.unreadDot} />
+                            <span
+                              title="Unread"
+                              className="h-1.5 w-1.5 rounded-full bg-primary"
+                            />
                           )}
                         </div>
 
-                        <p className={styles.message}>
-                          <strong>{senderName}</strong>
+                        <p className="mt-1 break-words text-[13px] leading-6 text-text">
+                          <strong className="font-semibold">
+                            {senderName}
+                          </strong>
                           {notification.message
                             ? ` ${notification.message}`
                             : ""}
                         </p>
 
-                        {sender?.username && (
-                          <p className={styles.username}>@{sender.username}</p>
-                        )}
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted">
+                          {sender?.username && <span>@{sender.username}</span>}
 
-                        <p className={styles.date}>
-                          {formatDate(notification.createdAt)}
-                        </p>
+                          {sender?.username && notification.createdAt && (
+                            <span aria-hidden="true">·</span>
+                          )}
+
+                          <span>{formatDate(notification.createdAt)}</span>
+                        </div>
                       </div>
 
+                      {/* Mark read */}
                       {!notification.isRead && (
                         <button
                           type="button"
-                          className={styles.markReadButton}
                           disabled={Boolean(updatingId) || markingAll}
                           onClick={(event) => {
                             event.stopPropagation();
                             handleMarkRead(notification);
                           }}
+                          className="shrink-0 rounded-lg border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold text-muted transition hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {isUpdating ? "Saving..." : "Mark read"}
                         </button>
@@ -453,7 +470,7 @@ export default function NotificationsPage() {
               </div>
             )}
           </section>
-        </main>
+        </div>
       </DashboardLayout>
     </UserLayOut>
   );

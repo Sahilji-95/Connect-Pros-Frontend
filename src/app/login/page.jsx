@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import UserLayOut from "@/layout/UserLayout/Index";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
-import styles from "./login.module.css";
+import { Eye, EyeOff } from "lucide-react";
 
 import {
   loginUser,
@@ -15,6 +15,16 @@ import {
 } from "@/config/redux/action/authAction";
 
 import { emptyMessage } from "@/config/redux/reducer/authReducer";
+
+// Shared style tokens
+const inputClass =
+  "h-11 w-full rounded-control border border-border bg-app px-3.5 text-sm text-text outline-none transition placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/25 aria-invalid:border-danger aria-invalid:focus:ring-danger/25 disabled:cursor-not-allowed disabled:opacity-50";
+
+const primaryButtonClass =
+  "flex h-11 w-full items-center justify-center rounded-control bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 dark:text-[#12141A]";
+
+const linkButtonClass =
+  "text-xs font-semibold text-primary transition hover:text-primary-hover disabled:cursor-not-allowed disabled:opacity-50";
 
 function Login() {
   const authState = useSelector((state) => state.auth);
@@ -31,6 +41,7 @@ function Login() {
     password: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [notice, setNotice] = useState({
@@ -323,6 +334,7 @@ function Login() {
     setOtp("");
     setResendCooldown(0);
     setFieldErrors({});
+    setShowPassword(false);
     setNotice({ message: "", isError: false });
 
     setFormData({
@@ -345,38 +357,34 @@ function Login() {
   // Reusable custom field error
   const FieldError = ({ error }) =>
     error ? (
-      <p className={styles.fieldError} role="alert">
+      <p className="mt-1.5 text-xs text-danger" role="alert">
         {error}
       </p>
     ) : null;
 
   return (
     <UserLayOut>
-      <div className={styles.container}>
-        <div className={styles.cardContainer}>
-          <div className={styles.cardContainer_left}>
-            <p className={styles.cardLeftHeading}>
+      <div className="flex min-h-[calc(100vh-76px)] items-center justify-center bg-app px-4 py-10 text-text sm:px-6">
+        <div className="grid w-full max-w-[920px] overflow-hidden rounded-panel border border-border bg-surface shadow-md lg:grid-cols-[1.25fr_1fr]">
+          {/* Form side */}
+          <div className="p-6 sm:p-10">
+            <h1 className="font-serif text-3xl font-bold tracking-tight text-text">
               {showOtpScreen
                 ? "Verify your email"
                 : userLoginMethod
                   ? "Sign in"
                   : "Sign up"}
-            </p>
+            </h1>
 
             {notice.message && (
               <p
-                className={styles.message}
+                className={`mt-5 rounded-control border px-3.5 py-2.5 text-xs leading-5 ${
+                  notice.isError
+                    ? "border-danger/30 bg-danger/5 text-danger"
+                    : "border-success/30 bg-success/10 text-success"
+                }`}
                 role="status"
                 aria-live="polite"
-                style={{
-                  color: notice.isError ? "#c7d2fe" : "#86efac",
-                  backgroundColor: notice.isError
-                    ? "rgba(99, 102, 241, 0.10)"
-                    : "rgba(34, 197, 94, 0.08)",
-                  border: notice.isError
-                    ? "1px solid rgba(99, 102, 241, 0.45)"
-                    : "1px solid rgba(34, 197, 94, 0.35)",
-                }}
               >
                 {notice.message}
               </p>
@@ -385,47 +393,60 @@ function Login() {
             {/* Email OTP verification screen */}
             {showOtpScreen ? (
               <form
-                className={styles.inputContainer}
+                className="mt-6 flex flex-col gap-4"
                 onSubmit={handleVerifyOtp}
                 noValidate
               >
-                <p className={styles.otpDescription}>
-                  We sent a 6-digit verification code to
-                </p>
-
-                <p className={styles.otpEmail}>{formData.email}</p>
-
-                <label className={styles.fieldLabel} htmlFor="emailOtp">
-                  Verification code
-                </label>
-
-                <input
-                  id="emailOtp"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  placeholder="Enter 6-digit OTP"
-                  className={`${styles.inputFiled} ${styles.otpInput}`}
-                  value={otp}
-                  onChange={(e) => {
-                    setOtp(e.target.value.replace(/\D/g, "").slice(0, 6));
-                    setNotice({ message: "", isError: false });
-                  }}
-                  aria-invalid={Boolean(notice.isError && otp.length !== 6)}
-                  aria-describedby="otp-error"
-                  disabled={isLoading}
-                />
-
-                {notice.isError && (
-                  <p id="otp-error" className={styles.fieldError} role="alert">
-                    {notice.message}
+                <div>
+                  <p className="text-sm text-muted">
+                    We sent a 6-digit verification code to
                   </p>
-                )}
+
+                  <p className="mt-1 break-all text-sm font-semibold text-text">
+                    {formData.email}
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    className="mb-1.5 block text-xs font-semibold text-text"
+                    htmlFor="emailOtp"
+                  >
+                    Verification code
+                  </label>
+
+                  <input
+                    id="emailOtp"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    placeholder="Enter 6-digit OTP"
+                    className={`${inputClass} text-center text-lg font-semibold tracking-[0.5em] placeholder:text-sm placeholder:font-normal placeholder:tracking-normal`}
+                    value={otp}
+                    onChange={(e) => {
+                      setOtp(e.target.value.replace(/\D/g, "").slice(0, 6));
+                      setNotice({ message: "", isError: false });
+                    }}
+                    aria-invalid={Boolean(notice.isError && otp.length !== 6)}
+                    aria-describedby="otp-error"
+                    disabled={isLoading}
+                  />
+
+                  {notice.isError && (
+                    <p
+                      id="otp-error"
+                      className="mt-1.5 text-xs text-danger"
+                      role="alert"
+                    >
+                      {notice.message}
+                    </p>
+                  )}
+                </div>
 
                 <button
                   type="submit"
-                  className={styles.button}
+                  className={primaryButtonClass}
                   disabled={isLoading || otp.length !== 6}
                 >
                   <span>
@@ -435,12 +456,12 @@ function Login() {
                   </span>
                 </button>
 
-                <div className={styles.resendContainer}>
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                   <span>Didn't receive the code?</span>
 
                   <button
                     type="button"
-                    className={styles.textButton}
+                    className={linkButtonClass}
                     onClick={handleResendOtp}
                     disabled={isLoading || resendCooldown > 0}
                   >
@@ -454,7 +475,7 @@ function Login() {
 
                 <button
                   type="button"
-                  className={styles.backButton}
+                  className="self-start text-xs font-medium text-muted transition hover:text-text disabled:cursor-not-allowed disabled:opacity-50"
                   onClick={handleBackToSignup}
                   disabled={isLoading}
                 >
@@ -464,18 +485,18 @@ function Login() {
             ) : (
               /* Signup and login form */
               <form
-                className={styles.inputContainer}
+                className="mt-6 flex flex-col gap-4"
                 onSubmit={userLoginMethod ? handleLogin : handleRegister}
                 noValidate
               >
                 {!userLoginMethod && (
-                  <div className={styles.inputRow}>
-                    <div className={styles.fieldGroup}>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
                       <input
                         type="text"
                         name="name"
                         placeholder="Enter your name"
-                        className={styles.inputFiled}
+                        className={inputClass}
                         value={formData.name}
                         onChange={handleOnChange}
                         autoComplete="name"
@@ -487,12 +508,12 @@ function Login() {
                       <FieldError error={fieldErrors.name} />
                     </div>
 
-                    <div className={styles.fieldGroup}>
+                    <div>
                       <input
                         type="text"
                         name="username"
                         placeholder="Enter your username"
-                        className={styles.inputFiled}
+                        className={inputClass}
                         value={formData.username}
                         onChange={handleOnChange}
                         autoComplete="username"
@@ -506,12 +527,12 @@ function Login() {
                   </div>
                 )}
 
-                <div className={styles.fieldGroup}>
+                <div>
                   <input
                     type="text"
                     name="email"
                     placeholder="Enter your email"
-                    className={styles.inputFiled}
+                    className={inputClass}
                     value={formData.email}
                     onChange={handleOnChange}
                     autoComplete="email"
@@ -522,52 +543,52 @@ function Login() {
                   <FieldError error={fieldErrors.email} />
                 </div>
 
-                <div className={styles.fieldGroup}>
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder={
-                      userLoginMethod
-                        ? "Enter your password"
-                        : "Create a password (min. 8 characters)"
-                    }
-                    className={styles.inputFiled}
-                    value={formData.password}
-                    onChange={handleOnChange}
-                    autoComplete={
-                      userLoginMethod ? "current-password" : "new-password"
-                    }
-                    maxLength={72}
-                    aria-invalid={Boolean(fieldErrors.password)}
-                    aria-describedby="password-error"
-                    disabled={isLoading}
-                  />
+                <div>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      placeholder={
+                        userLoginMethod
+                          ? "Enter your password"
+                          : "Create a password (min. 8 characters)"
+                      }
+                      className={`${inputClass} pr-11`}
+                      value={formData.password}
+                      onChange={handleOnChange}
+                      autoComplete={
+                        userLoginMethod ? "current-password" : "new-password"
+                      }
+                      maxLength={72}
+                      aria-invalid={Boolean(fieldErrors.password)}
+                      aria-describedby="password-error"
+                      disabled={isLoading}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((previous) => !previous)}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      aria-pressed={showPassword}
+                      disabled={isLoading}
+                      className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition hover:bg-surface-muted hover:text-text disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                    </button>
+                  </div>
+
                   <FieldError error={fieldErrors.password} />
                 </div>
 
                 {/* Added: Forgot Password link; visible only in Sign In mode */}
                 {userLoginMethod && (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      width: "100%",
-                      marginTop: "-6px",
-                      marginBottom: "8px",
-                    }}
-                  >
+                  <div className="-mt-1 flex justify-end">
                     <button
                       type="button"
                       onClick={() => router.push("/forget-password")}
-                      style={{
-                        background: "transparent",
-                        border: "none",
-                        color: "#818cf8",
-                        fontSize: "13px",
-                        fontWeight: 500,
-                        cursor: "pointer",
-                        padding: "4px 0",
-                      }}
+                      className={linkButtonClass}
                     >
                       Forgot Password?
                     </button>
@@ -576,7 +597,7 @@ function Login() {
 
                 <button
                   type="submit"
-                  className={styles.button}
+                  className={primaryButtonClass}
                   disabled={isLoading}
                 >
                   <span>
@@ -593,9 +614,10 @@ function Login() {
             )}
           </div>
 
-          <div className={styles.cardContainer_right}>
-            <div>
-              <p>
+          {/* Switch side */}
+          <div className="flex items-center justify-center border-t border-border bg-primary p-8 text-center text-white dark:text-[#12141A] lg:border-l lg:border-t-0 lg:p-10">
+            <div className="flex max-w-[240px] flex-col items-center gap-5">
+              <p className="font-serif text-xl font-bold leading-snug">
                 {showOtpScreen
                   ? "Check your inbox for the code"
                   : userLoginMethod
@@ -605,9 +627,9 @@ function Login() {
 
               <button
                 type="button"
-                className={styles.button}
                 onClick={handleSwitchMethod}
                 disabled={isLoading}
+                className="flex h-11 w-full items-center justify-center rounded-control border border-current/60 px-5 text-sm font-semibold transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-black/10"
               >
                 <span>{userLoginMethod ? "Sign Up" : "Sign In"}</span>
               </button>

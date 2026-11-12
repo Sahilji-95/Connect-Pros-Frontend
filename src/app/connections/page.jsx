@@ -14,15 +14,18 @@ import {
   acceptConnectionRequest,
   deleteConnection,
 } from "@/config/redux/action/authAction/index.js";
-import styles from "./connections.module.css";
 import {
   Search,
   Users,
   Check,
   X,
-  UserPlus,
   MessageCircle,
   Trash2,
+  UserRound,
+  LoaderCircle,
+  ArrowUpRight,
+  UserCheck,
+  Clock3,
 } from "lucide-react";
 
 export default function Connections() {
@@ -141,9 +144,6 @@ export default function Connections() {
     }
   };
 
-  /* ---------- Delete flow: click -> popup -> confirm -> API ---------- */
-
-  // Returns true on success, false on failure.
   const handleDeleteConnection = async (connectionId) => {
     if (!connectionId || deleteLoadingId) return false;
 
@@ -178,6 +178,7 @@ export default function Connections() {
 
   const handleCancelDelete = () => {
     if (deleteLoadingId) return;
+
     setShowDeletePopup(false);
     setSelectedConnection(null);
   };
@@ -195,413 +196,479 @@ export default function Connections() {
     }
   };
 
-  const renderAvatar = (user) => {
-    if (user.profilePicture) {
-      return (
+  const openProfile = (username) => {
+    if (!username) return;
+
+    router.push(`/view_profile/${encodeURIComponent(username)}`);
+  };
+
+  const renderAvatar = (user) => (
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-soft text-sm font-semibold text-primary sm:h-12 sm:w-12">
+      {user.profilePicture ? (
         <img
-          className={styles.avatar}
           src={user.profilePicture}
           alt={user.name || "User"}
           loading="lazy"
+          className="h-full w-full object-cover"
+          onError={(event) => {
+            event.currentTarget.onerror = null;
+            event.currentTarget.style.display = "none";
+          }}
         />
-      );
-    }
+      ) : (
+        (user.name || user.username || "U").trim().charAt(0).toUpperCase()
+      )}
+    </div>
+  );
 
-    return (
-      <div className={styles.avatarFallback}>
-        {(user.name || user.username || "U").trim().charAt(0).toUpperCase()}
-      </div>
-    );
-  };
+  const isRequestsTab = activeTab === "requests";
+  const activeCount = isRequestsTab
+    ? connectionRequest.length
+    : myConnections.length;
+
+  const visibleCount = isRequestsTab
+    ? filteredRequests.length
+    : filteredConnections.length;
 
   return (
     <UserLayOut>
       <DashboardLayout>
-        <main className={styles.page}>
-          <section className={styles.hero}>
-            <div className={styles.heroContent}>
-              <div className={styles.eyebrow}>
-                <Users size={15} />
-                <span>YOUR NETWORK</span>
-              </div>
-
-              <h1>
-                Your <span>Connections</span>
-              </h1>
-
-              <p className={styles.subtitle}>
-                Manage incoming requests and stay connected with your network.
-              </p>
-
-              <div className={styles.heroStats}>
-                <div className={styles.statIcon}>
-                  <UserPlus size={22} />
-                </div>
-
-                <div>
-                  <strong>{myConnections.length}</strong>
-                  <span>Accepted connections</span>
-                </div>
-              </div>
+        <main className="min-h-screen min-w-0 bg-app px-3 py-5 text-text sm:px-5 sm:py-7 lg:px-7">
+          {/* Page heading */}
+          <header className="mb-6">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-accent" />
+              <span className="text-[10px] font-bold tracking-[1.5px] text-muted">
+                YOUR NETWORK
+              </span>
             </div>
 
-            <div className={styles.heroDecoration} aria-hidden="true">
-              <div className={`${styles.orbit} ${styles.orbitOne}`} />
-              <div className={`${styles.orbit} ${styles.orbitTwo}`} />
-              <div className={styles.heroCircle}>
-                <Users size={54} strokeWidth={1.4} />
-              </div>
-            </div>
-          </section>
+            <h1 className="text-2xl font-bold tracking-tight text-text sm:text-3xl">
+              Your Connections<span className="text-accent">.</span>
+            </h1>
 
-          <section className={styles.content}>
-            <div className={styles.sectionHeader}>
+            <p className="mt-2 max-w-xl text-xs leading-6 text-muted sm:text-sm">
+              Manage your requests and stay connected with your network.
+            </p>
+
+            {/* Network stats */}
+            <div className="mt-5 inline-flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                <UserCheck size={19} />
+              </div>
+
               <div>
-                <h2>Manage your network</h2>
-                <p>View requests and people you are connected with.</p>
+                <p className="text-lg font-bold leading-5 text-text">
+                  {myConnections.length}
+                </p>
+                <p className="mt-1 text-[11px] text-muted">
+                  Accepted connections
+                </p>
               </div>
             </div>
+          </header>
 
-            <div className={styles.toolbar}>
-              <div className={styles.filters}>
+          {/* Network content */}
+          <section>
+            <div className="mb-4">
+              <h2 className="text-base font-bold text-text sm:text-lg">
+                Manage your network
+              </h2>
+              <p className="mt-1 text-xs text-muted">
+                View requests and people you are connected with.
+              </p>
+            </div>
+
+            {/* Tabs */}
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex w-full rounded-xl border border-border bg-surface p-1 sm:w-auto">
                 <button
                   type="button"
-                  className={`${styles.filterBtn} ${
-                    activeTab === "requests" ? styles.activeFilter : ""
-                  }`}
                   onClick={() => {
                     setActiveTab("requests");
                     setSearchQuery("");
+                    setErrorMessage("");
                   }}
+                  className={`flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold transition sm:flex-none sm:px-4 ${
+                    isRequestsTab
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-muted hover:bg-app hover:text-text"
+                  }`}
                 >
+                  <Clock3 size={15} />
                   Requests
-                  <span>{connectionRequest.length}</span>
+                  <span
+                    className={`rounded-md px-1.5 py-0.5 text-[10px] ${
+                      isRequestsTab
+                        ? "bg-white/20 text-white"
+                        : "bg-app text-muted"
+                    }`}
+                  >
+                    {connectionRequest.length}
+                  </span>
                 </button>
 
                 <button
                   type="button"
-                  className={`${styles.filterBtn} ${
-                    activeTab === "connections" ? styles.activeFilter : ""
-                  }`}
                   onClick={() => {
                     setActiveTab("connections");
                     setSearchQuery("");
+                    setErrorMessage("");
                   }}
+                  className={`flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold transition sm:flex-none sm:px-4 ${
+                    !isRequestsTab
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-muted hover:bg-app hover:text-text"
+                  }`}
                 >
+                  <Users size={15} />
                   My Connections
-                  <span>{myConnections.length}</span>
+                  <span
+                    className={`rounded-md px-1.5 py-0.5 text-[10px] ${
+                      !isRequestsTab
+                        ? "bg-white/20 text-white"
+                        : "bg-app text-muted"
+                    }`}
+                  >
+                    {myConnections.length}
+                  </span>
                 </button>
               </div>
 
-              <div className={styles.searchBox}>
-                <Search size={19} />
+              {/* Search */}
+              <div className="flex h-10 w-full items-center gap-2 rounded-xl border border-border bg-surface px-3 transition focus-within:border-border sm:max-w-[280px]">
+                <Search size={17} className="shrink-0 text-muted" />
 
                 <input
-                  type="search"
+                  type="text"
                   placeholder={
-                    activeTab === "requests"
+                    isRequestsTab
                       ? "Search requests..."
                       : "Search connections..."
                   }
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   aria-label="Search people"
+                  className="min-w-0 flex-1 bg-transparent text-xs text-text outline-none ring-0 placeholder:text-muted focus:outline-none focus:ring-0"
                 />
 
                 {searchQuery && (
                   <button
                     type="button"
-                    className={styles.clearSearch}
                     onClick={() => setSearchQuery("")}
                     aria-label="Clear search"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted hover:bg-app hover:text-text"
                   >
-                    <X size={16} />
+                    <X size={15} />
                   </button>
                 )}
               </div>
             </div>
 
+            {/* Error message */}
             {errorMessage && (
-              <div className={styles.errorMessage} role="alert">
-                <span>{errorMessage}</span>
+              <div
+                className="mb-4 flex items-start justify-between gap-3 rounded-xl border border-danger/20 bg-danger/5 px-3 py-3 text-xs text-danger"
+                role="alert"
+              >
+                <span className="break-words">{errorMessage}</span>
+
                 <button
                   type="button"
                   onClick={() => setErrorMessage("")}
                   aria-label="Dismiss error"
+                  className="shrink-0"
                 >
                   <X size={16} />
                 </button>
               </div>
             )}
 
-            {activeTab === "requests" && (
+            {/* Section heading */}
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-bold text-text sm:text-base">
+                  {isRequestsTab ? "Connection Requests" : "My Connections"}
+                </h2>
+
+                <p className="mt-1 text-[11px] text-muted">
+                  {isRequestsTab
+                    ? "People who want to connect with you."
+                    : "People you are connected with."}
+                </p>
+              </div>
+
+              <span className="shrink-0 rounded-lg bg-primary-soft px-2.5 py-1.5 text-[10px] font-semibold text-primary">
+                {activeCount} {isRequestsTab ? "pending" : "connections"}
+              </span>
+            </div>
+
+            {/* Requests list */}
+            {isRequestsTab && (
               <>
-                <div className={styles.sectionHeader}>
-                  <div>
-                    <h2>Connection Requests</h2>
-                    <p>People who want to connect with you.</p>
-                  </div>
-
-                  <span className={styles.requestCount}>
-                    {connectionRequest.length} pending
-                  </span>
-                </div>
-
                 {filteredRequests.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <div className={styles.emptyIllustration}>
-                      <div className={styles.emptyIcon}>
-                        <Users size={34} />
-                      </div>
+                  <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-surface px-5 py-12 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                      <Users size={23} />
                     </div>
 
-                    <h3>
+                    <h3 className="mt-4 text-sm font-semibold text-text">
                       {connectionRequest.length === 0
                         ? "No requests yet"
                         : "No matching requests"}
                     </h3>
 
-                    <p>
+                    <p className="mt-1 max-w-sm text-xs leading-5 text-muted">
                       {connectionRequest.length === 0
                         ? "New connection requests will appear here."
                         : "Try searching with a different name or username."}
                     </p>
                   </div>
                 ) : (
-                  <div className={styles.requestList}>
-                    {filteredRequests.map((request) => {
-                      const user = request.userId;
-                      if (!user) return null;
+                  <>
+                    <p className="mb-2 text-[11px] text-muted">
+                      Showing {visibleCount} of {activeCount} requests
+                    </p>
 
-                      const isLoading = loadingRequestId === request._id;
+                    <div className="space-y-2.5">
+                      {filteredRequests.map((request) => {
+                        const user = request.userId;
+                        if (!user) return null;
 
-                      return (
-                        <article
-                          className={styles.requestCard}
-                          key={request._id}
-                        >
-                          <div className={styles.cardAccent} />
+                        const isLoading = loadingRequestId === request._id;
 
-                          <div className={styles.userInfo}>
-                            <div className={styles.avatarWrapper}>
+                        return (
+                          <article
+                            key={request._id}
+                            className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-surface p-3 transition-colors hover:border-primary/40 sm:flex-row sm:items-center sm:justify-between sm:px-4"
+                          >
+                            <div className="flex min-w-0 items-center gap-3">
                               {renderAvatar(user)}
-                              <span className={styles.avatarStatus} />
-                            </div>
 
-                            <div className={styles.userDetails}>
-                              <h3>{user.name || "Unknown User"}</h3>
+                              <div className="min-w-0 flex-1">
+                                <button
+                                  type="button"
+                                  onClick={() => openProfile(user.username)}
+                                  className="block max-w-full truncate text-left text-sm font-semibold text-text hover:text-primary"
+                                >
+                                  {user.name || "Unknown User"}
+                                </button>
 
-                              <div
-                                onClick={() => {
-                                  router.push(`/view_profile/${user.username}`);
-                                }}
-                                style={{ cursor: "pointer" }}
-                              >
-                                <p className={styles.username}>
+                                <button
+                                  type="button"
+                                  onClick={() => openProfile(user.username)}
+                                  className="mt-0.5 block max-w-full truncate text-xs text-muted hover:text-primary"
+                                >
                                   @{user.username || "username"}
-                                </p>
+                                </button>
+
+                                <span className="mt-1.5 inline-flex items-center gap-1.5 text-[10px] font-medium text-accent">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                                  Wants to connect
+                                </span>
                               </div>
-
-                              <span className={styles.pendingLabel}>
-                                <span />
-                                Wants to connect
-                              </span>
                             </div>
-                          </div>
 
-                          <div className={styles.actions}>
-                            <button
-                              type="button"
-                              className={styles.acceptBtn}
-                              disabled={loadingRequestId !== null}
-                              onClick={() =>
-                                handleRequestAction(request._id, "accept")
-                              }
-                            >
-                              {isLoading ? (
-                                <span className={styles.spinner} />
-                              ) : (
-                                <Check size={17} />
-                              )}
-                              <span>
+                            <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
+                              <button
+                                type="button"
+                                disabled={loadingRequestId !== null}
+                                onClick={() =>
+                                  handleRequestAction(request._id, "accept")
+                                }
+                                className="flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[100px]"
+                              >
+                                {isLoading ? (
+                                  <LoaderCircle
+                                    size={15}
+                                    className="animate-spin"
+                                  />
+                                ) : (
+                                  <Check size={15} />
+                                )}
                                 {isLoading ? "Processing..." : "Accept"}
-                              </span>
-                            </button>
+                              </button>
 
-                            <button
-                              type="button"
-                              className={styles.rejectBtn}
-                              disabled={loadingRequestId !== null}
-                              onClick={() =>
-                                handleRequestAction(request._id, "reject")
-                              }
-                            >
-                              <X size={17} />
-                              <span>Reject</span>
-                            </button>
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
+                              <button
+                                type="button"
+                                disabled={loadingRequestId !== null}
+                                onClick={() =>
+                                  handleRequestAction(request._id, "reject")
+                                }
+                                className="flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-app px-3 py-2 text-xs font-semibold text-muted transition hover:border-danger/40 hover:text-danger disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[95px]"
+                              >
+                                <X size={15} />
+                                Reject
+                              </button>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </>
                 )}
               </>
             )}
 
-            {/* ---------------- My Connections tab ---------------- */}
-            {activeTab === "connections" && (
+            {/* My connections list */}
+            {!isRequestsTab && (
               <>
-                <div className={styles.sectionHeader}>
-                  <div>
-                    <h2>My Connections</h2>
-                    <p>People you are connected with.</p>
-                  </div>
-
-                  <span className={styles.requestCount}>
-                    {myConnections.length} connections
-                  </span>
-                </div>
-
                 {filteredConnections.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <div className={styles.emptyIllustration}>
-                      <div className={styles.emptyIcon}>
-                        <Users size={34} />
-                      </div>
+                  <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-surface px-5 py-12 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                      <Users size={23} />
                     </div>
 
-                    <h3>
+                    <h3 className="mt-4 text-sm font-semibold text-text">
                       {myConnections.length === 0
                         ? "No connections yet"
                         : "No matching connections"}
                     </h3>
 
-                    <p>
+                    <p className="mt-1 max-w-sm text-xs leading-5 text-muted">
                       {myConnections.length === 0
                         ? "Accept a connection request to grow your network."
                         : "Try searching with a different name or username."}
                     </p>
                   </div>
                 ) : (
-                  <div className={styles.requestList}>
-                    {filteredConnections.map((user) => (
-                      <article className={styles.requestCard} key={user._id}>
-                        <div className={styles.cardAccent} />
+                  <>
+                    <p className="mb-2 text-[11px] text-muted">
+                      Showing {visibleCount} of {activeCount} connections
+                    </p>
 
-                        <div className={styles.userInfo}>
-                          <div className={styles.avatarWrapper}>
+                    <div className="space-y-2.5">
+                      {filteredConnections.map((user) => (
+                        <article
+                          key={user._id}
+                          className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-surface p-3 transition-colors hover:border-primary/40 sm:flex-row sm:items-center sm:justify-between sm:px-4"
+                        >
+                          <div className="flex min-w-0 items-center gap-3">
                             {renderAvatar(user)}
-                            <span className={styles.avatarStatus} />
-                          </div>
 
-                          <div className={styles.userDetails}>
-                            <h3>{user.name || "Unknown User"}</h3>
+                            <div className="min-w-0 flex-1">
+                              <button
+                                type="button"
+                                onClick={() => openProfile(user.username)}
+                                className="block max-w-full truncate text-left text-sm font-semibold text-text hover:text-primary"
+                              >
+                                {user.name || "Unknown User"}
+                              </button>
 
-                            <div
-                              onClick={() => {
-                                router.push(`/view_profile/${user.username}`);
-                              }}
-                              style={{ cursor: "pointer" }}
-                            >
-                              <p className={styles.username}>
+                              <button
+                                type="button"
+                                onClick={() => openProfile(user.username)}
+                                className="mt-0.5 block max-w-full truncate text-xs text-muted hover:text-primary"
+                              >
                                 @{user.username || "username"}
-                              </p>
+                              </button>
+
+                              <span className="mt-1.5 inline-flex items-center gap-1.5 text-[10px] font-medium text-primary">
+                                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                                Connected
+                              </span>
                             </div>
-
-                            <span className={styles.pendingLabel}>
-                              <span />
-                              Connected
-                            </span>
                           </div>
-                        </div>
 
-                        <div className={styles.connectionActions}>
-                          <button
-                            type="button"
-                            className={styles.messageBtn}
-                            disabled={messageLoadingId !== null}
-                            onClick={() => handleMessage(user._id)}
-                          >
-                            {messageLoadingId === user._id ? (
-                              <span className={styles.spinner} />
-                            ) : (
-                              <MessageCircle size={16} />
-                            )}
-
-                            <span>
+                          <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
+                            <button
+                              type="button"
+                              disabled={messageLoadingId !== null}
+                              onClick={() => handleMessage(user._id)}
+                              className="flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[105px]"
+                            >
+                              {messageLoadingId === user._id ? (
+                                <LoaderCircle
+                                  size={15}
+                                  className="animate-spin"
+                                />
+                              ) : (
+                                <MessageCircle size={15} />
+                              )}
                               {messageLoadingId === user._id
                                 ? "Opening..."
                                 : "Message"}
-                            </span>
-                          </button>
+                            </button>
 
-                          <button
-                            type="button"
-                            className={styles.deleteBtn}
-                            disabled={deleteLoadingId !== null}
-                            onClick={() => handleDeleteClick(user)}
-                          >
-                            <Trash2 size={16} />
-                            <span>Delete</span>
-                          </button>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
+                            <button
+                              type="button"
+                              disabled={deleteLoadingId !== null}
+                              onClick={() => handleDeleteClick(user)}
+                              className="flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-app px-3 py-2 text-xs font-semibold text-muted transition hover:border-danger/40 hover:text-danger disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[95px]"
+                            >
+                              <Trash2 size={15} />
+                              Delete
+                            </button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </>
                 )}
               </>
             )}
 
-            <footer className={styles.footer}>
-              <span className={styles.footerDot} />
-              <p>Your network, your community.</p>
+            {/* Footer */}
+            <footer className="mt-8 flex items-center justify-center gap-2 border-t border-border pt-5">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <p className="text-[11px] text-muted">
+                Your network, your community.
+              </p>
             </footer>
           </section>
 
-          {/* ---------------- Delete confirmation popup ---------------- */}
+          {/* Delete confirmation modal */}
           {showDeletePopup && (
-            <div className={styles.modalOverlay} onClick={handleCancelDelete}>
+            <div
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm"
+              onClick={handleCancelDelete}
+            >
               <div
-                className={styles.confirmModal}
+                className="w-full max-w-sm rounded-2xl border border-border bg-surface p-5 shadow-2xl sm:p-6"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="delete-modal-title"
                 onClick={(event) => event.stopPropagation()}
               >
-                <div className={styles.modalIcon}>
-                  <Trash2 size={24} />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-danger/10 text-danger">
+                  <Trash2 size={22} />
                 </div>
 
-                <h2 id="delete-modal-title">Delete Connection?</h2>
+                <h2
+                  id="delete-modal-title"
+                  className="mt-4 text-lg font-bold text-text"
+                >
+                  Delete Connection?
+                </h2>
 
-                <p>
+                <p className="mt-2 text-sm leading-6 text-muted">
                   Are you sure you want to delete{" "}
-                  <strong>
+                  <strong className="text-text">
                     {selectedConnection?.name || "this connection"}
                   </strong>
                   ? This action cannot be undone.
                 </p>
 
-                <div className={styles.modalActions}>
+                <div className="mt-6 grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    className={styles.cancelBtn}
                     onClick={handleCancelDelete}
                     disabled={deleteLoadingId !== null}
+                    className="flex min-h-10 items-center justify-center rounded-lg border border-border bg-app px-4 py-2 text-xs font-semibold text-text transition hover:bg-surface disabled:opacity-50"
                   >
                     Cancel
                   </button>
 
                   <button
                     type="button"
-                    className={styles.confirmDeleteBtn}
                     onClick={handleConfirmDelete}
                     disabled={deleteLoadingId !== null}
+                    className="flex min-h-10 items-center justify-center gap-2 rounded-lg bg-danger px-4 py-2 text-xs font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
                   >
                     {deleteLoadingId ? (
-                      <span className={styles.spinner} />
+                      <LoaderCircle size={15} className="animate-spin" />
                     ) : (
-                      <Trash2 size={16} />
+                      <Trash2 size={15} />
                     )}
                     {deleteLoadingId ? "Deleting..." : "Delete"}
                   </button>

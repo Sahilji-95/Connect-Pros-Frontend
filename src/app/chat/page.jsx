@@ -10,10 +10,8 @@ import React, {
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "next/navigation";
-
 import DashboardLayout from "@/layout/DashboardLayout/Index";
 import UserLayOut from "@/layout/UserLayout/Index";
-import styles from "./chat.module.css";
 
 import {
   getConversations,
@@ -28,6 +26,21 @@ import {
 
 import { getAboutUser } from "@/config/redux/action/authAction";
 import { getChatSocket } from "@/config/socket";
+
+import {
+  Search,
+  MessageCircle,
+  Send,
+  ArrowLeft,
+  CheckCheck,
+  Check,
+  Clock3,
+  LoaderCircle,
+  Users,
+  Wifi,
+  WifiOff,
+  X,
+} from "lucide-react";
 
 const getId = (value) => {
   if (!value) return null;
@@ -73,22 +86,15 @@ const formatLastSeen = (value) => {
   const minutes = Math.floor(diff / 60000);
 
   if (minutes < 1) return "Last seen just now";
-
-  if (minutes < 60) {
-    return `Last seen ${minutes}m ago`;
-  }
+  if (minutes < 60) return `Last seen ${minutes}m ago`;
 
   const hours = Math.floor(minutes / 60);
 
-  if (hours < 24) {
-    return `Last seen ${hours}h ago`;
-  }
+  if (hours < 24) return `Last seen ${hours}h ago`;
 
   const days = Math.floor(hours / 24);
 
-  if (days < 7) {
-    return `Last seen ${days}d ago`;
-  }
+  if (days < 7) return `Last seen ${days}d ago`;
 
   return `Last seen ${date.toLocaleDateString([], {
     day: "2-digit",
@@ -115,8 +121,8 @@ const getErrorMessage = (error) => {
 
 function ChatContent() {
   const dispatch = useDispatch();
-
   const searchParams = useSearchParams();
+
   const targetConversationId = searchParams.get("conversationId");
 
   const authUser = useSelector((state) => state.auth.user);
@@ -153,7 +159,6 @@ function ChatContent() {
 
   const currentUserId = useMemo(() => {
     const user = authUser?.userId || authUser?.user || authUser;
-
     return getId(user);
   }, [authUser]);
 
@@ -178,16 +183,12 @@ function ChatContent() {
 
         return {
           ...conversation,
-
           user: {
             ...otherUser,
             lastSeen: lastSeenByUser[otherUserId] || otherUser.lastSeen || null,
           },
-
           lastMessage: conversation.lastMessage?.text || "",
-
           unread: conversation.unreadCount || 0,
-
           online: onlineUserIds.includes(otherUserId),
         };
       })
@@ -214,7 +215,7 @@ function ChatContent() {
     });
   }, [normalizedConversations, search]);
 
-  // Fetch user profile
+  // Fetch profile
   useEffect(() => {
     if (!profileFetched || !currentUserId) {
       dispatch(getAboutUser());
@@ -228,7 +229,7 @@ function ChatContent() {
     dispatch(getConversations());
   }, [dispatch, currentUserId]);
 
-  // Mark received messages as read
+  // Mark messages as read
   const markMessagesRead = useCallback(
     (conversationId, conversationMessages) => {
       if (!conversationId || !currentUserId) return;
@@ -267,7 +268,7 @@ function ChatContent() {
     [currentUserId],
   );
 
-  // Socket connection, presence and real-time messages
+  // Socket connection, presence and messages
   useEffect(() => {
     if (!currentUserId) return;
 
@@ -289,7 +290,6 @@ function ChatContent() {
 
     const handleConnect = () => {
       setSocketConnected(true);
-
       dispatch(getConversations());
 
       const selectedId = activeConversationRef.current;
@@ -311,11 +311,9 @@ function ChatContent() {
 
     const handleConnectError = (error) => {
       console.error("Chat socket connection error:", error.message);
-
       setSocketConnected(false);
     };
 
-    // Incoming messages
     const handleIncomingMessage = (payload) => {
       const message = payload?.message || payload;
 
@@ -335,7 +333,6 @@ function ChatContent() {
       dispatch(getConversations());
     };
 
-    // Read receipts
     const handleReadReceipt = (payload) => {
       const conversationId = getId(payload?.conversationId);
 
@@ -348,7 +345,6 @@ function ChatContent() {
       }
     };
 
-    // Browser tab visibility
     const handleVisibilityChange = () => {
       if (!socket.connected) return;
 
@@ -362,9 +358,7 @@ function ChatContent() {
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
     socket.on("connect_error", handleConnectError);
-
     socket.on("chat:message", handleIncomingMessage);
-
     socket.on("chat:read_receipt", handleReadReceipt);
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -381,14 +375,12 @@ function ChatContent() {
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
       socket.off("connect_error", handleConnectError);
-
       socket.off("chat:message", handleIncomingMessage);
-
       socket.off("chat:read_receipt", handleReadReceipt);
 
       document.removeEventListener("visibilitychange", handleVisibilityChange);
 
-      // Do not disconnect the shared socket here.
+      // Shared socket lifecycle remains managed by the parent.
     };
   }, [currentUserId, dispatch]);
 
@@ -454,16 +446,13 @@ function ChatContent() {
     }
 
     activeConversationRef.current = null;
-
     dispatch(clearActiveConversation());
-
     setSendError("");
   };
 
-  // Mark messages read when active conversation messages load
+  // Mark active messages as read
   useEffect(() => {
     if (!activeId || !socketConnected) return;
-
     if (document.visibilityState !== "visible") return;
 
     markMessagesRead(activeId, messages);
@@ -473,9 +462,13 @@ function ChatContent() {
   useEffect(() => {
     if (!activeId || olderMessagesLoading) return;
 
-    bottomRef.current?.scrollIntoView({
+    const container = messagesContainerRef.current;
+
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
       behavior: "smooth",
-      block: "end",
     });
   }, [activeId, messages.length, olderMessagesLoading]);
 
@@ -497,7 +490,6 @@ function ChatContent() {
     loadingOlderRef.current = true;
 
     const container = messagesContainerRef.current;
-
     const previousHeight = container?.scrollHeight || 0;
     const previousTop = container?.scrollTop || 0;
 
@@ -540,7 +532,6 @@ function ChatContent() {
     }
 
     sendingRef.current = true;
-
     setSending(true);
     setSendError("");
 
@@ -555,7 +546,6 @@ function ChatContent() {
       },
       (error, ack) => {
         sendingRef.current = false;
-
         setSending(false);
 
         if (
@@ -569,7 +559,6 @@ function ChatContent() {
               ack?.error ||
               "Message could not be sent. Please try again.",
           );
-
           return;
         }
 
@@ -585,7 +574,6 @@ function ChatContent() {
         }
 
         setText("");
-
         inputRef.current?.focus();
       },
     );
@@ -603,283 +591,437 @@ function ChatContent() {
     }
   };
 
+  const renderAvatar = (user, size = "h-11 w-11") => (
+    <div
+      className={`relative ${size} shrink-0 overflow-hidden rounded-full border border-border bg-primary-soft`}
+    >
+      {user?.profilePicture ? (
+        <img
+          src={user.profilePicture}
+          alt={user.name || "User"}
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-sm font-bold text-primary">
+          {(user?.name || "U").charAt(0).toUpperCase()}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <UserLayOut>
       <DashboardLayout>
-        <div
-          className={`${styles.chatWrapper} ${
-            activeId ? styles.windowOpen : ""
-          }`}
-        >
-          {/* Conversation list */}
-          <aside className={styles.listPanel}>
-            <div className={styles.listHeader}>
-              <h2 className={styles.title}>Messages</h2>
-            </div>
-
-            <div className={styles.searchBox}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                />
-              </svg>
-
-              <input
-                type="text"
-                placeholder="Search conversations"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </div>
-
-            <div className={styles.conversationList}>
-              {conversationsLoading && normalizedConversations.length === 0 && (
-                <p className={styles.emptyList}>Loading conversations...</p>
-              )}
-
-              {!conversationsLoading && filteredConversations.length === 0 && (
-                <p className={styles.emptyList}>No conversations found</p>
-              )}
-
-              {filteredConversations.map((conversation) => (
-                <div
-                  key={conversation._id}
-                  className={`${styles.conversationItem} ${
-                    conversation._id === activeId ? styles.activeItem : ""
-                  }`}
-                  onClick={() => handleSelectConversation(conversation._id)}
-                >
-                  <div className={styles.avatarWrap}>
-                    <img
-                      className={styles.avatar}
-                      src={
-                        conversation.user.profilePicture ||
-                        "/default-avatar.png"
-                      }
-                      alt={conversation.user.name || "User"}
-                    />
-
-                    {conversation.online && (
-                      <span className={styles.onlineDot} />
-                    )}
+        {/*
+          FIX: DashboardLayout already renders the <main> (with the correct
+          height for /chat). The old nested <main> with min-h-screen, padding
+          and a hard-coded section height fought with it and shifted the
+          layout. Now the chat simply fills the space DashboardLayout gives it.
+        */}
+        <div className="h-full min-h-0 min-w-0 bg-app text-text">
+          <section className="flex h-full min-h-0 w-full min-w-0 overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+            {/* Conversation list */}
+            <aside
+              className={`${
+                activeId ? "hidden md:flex" : "flex"
+              } w-full shrink-0 flex-col border-r border-border md:w-[290px] lg:w-[340px]`}
+            >
+              {/* Sidebar heading */}
+              <div className="border-b border-border px-4 py-4 sm:px-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold tracking-[1.5px] text-muted">
+                      YOUR INBOX
+                    </p>
+                    <h1 className="mt-1 text-xl font-bold tracking-tight text-text">
+                      Messages
+                    </h1>
                   </div>
 
-                  <div className={styles.conversationInfo}>
-                    <div className={styles.conversationTop}>
-                      <p className={styles.conversationName}>
-                        {conversation.user.name || "User"}
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                    <MessageCircle size={19} />
+                  </div>
+                </div>
+
+                {/* Socket status */}
+                <div className="mt-3 flex items-center gap-2">
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      socketConnected ? "bg-primary" : "bg-danger"
+                    }`}
+                  />
+                  <span className="text-[11px] text-muted">
+                    {socketConnected
+                      ? "Chat connected"
+                      : "Connecting to chat..."}
+                  </span>
+                </div>
+              </div>
+
+              {/* Conversation search */}
+              <div className="border-b border-border p-3 sm:p-4">
+                <div className="flex h-10 items-center gap-2.5 rounded-xl border border-border bg-app px-3">
+                  <Search size={16} className="shrink-0 text-muted" />
+
+                  <input
+                    type="text"
+                    placeholder="Search conversations..."
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    className="min-w-0 flex-1 bg-transparent text-xs text-text outline-none placeholder:text-muted"
+                  />
+
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch("")}
+                      aria-label="Clear search"
+                      className="text-muted hover:text-text"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Conversation list */}
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {conversationsLoading &&
+                  normalizedConversations.length === 0 && (
+                    <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+                      <LoaderCircle
+                        size={22}
+                        className="animate-spin text-primary"
+                      />
+                      <p className="text-xs text-muted">
+                        Loading conversations...
                       </p>
-
-                      <span className={styles.conversationTime}>
-                        {formatListTime(conversation.lastMessageAt)}
-                      </span>
                     </div>
+                  )}
 
-                    <div className={styles.conversationBottom}>
-                      <div>
-                        <p className={styles.lastMessage}>
-                          {conversation.lastMessage || "Start a conversation"}
-                        </p>
-
-                        <p className={styles.headerStatus}>
-                          {conversation.online
-                            ? "Online"
-                            : formatLastSeen(conversation.user.lastSeen)}
-                        </p>
+                {!conversationsLoading &&
+                  filteredConversations.length === 0 && (
+                    <div className="flex flex-col items-center px-5 py-12 text-center">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                        <Users size={21} />
                       </div>
 
-                      {conversation.unread > 0 && (
-                        <span className={styles.unreadBadge}>
-                          {conversation.unread}
-                        </span>
-                      )}
+                      <p className="mt-3 text-sm font-semibold text-text">
+                        No conversations found
+                      </p>
+
+                      <p className="mt-1 text-xs text-muted">
+                        Your accepted connections will appear here.
+                      </p>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </aside>
+                  )}
 
-          {/* Chat window */}
-          <section className={styles.windowPanel}>
-            {!activeChat ? (
-              <div className={styles.placeholder}>
-                <div className={styles.placeholderIcon}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
-                    />
-                  </svg>
-                </div>
+                <div className="space-y-1 p-2">
+                  {filteredConversations.map((conversation) => {
+                    const isActive = conversation._id === activeId;
 
-                <h3>Your messages</h3>
-                <p>Select a conversation to start chatting</p>
+                    return (
+                      <button
+                        key={conversation._id}
+                        type="button"
+                        onClick={() =>
+                          handleSelectConversation(conversation._id)
+                        }
+                        className={`flex w-full min-w-0 items-center gap-3 rounded-xl p-3 text-left transition ${
+                          isActive ? "bg-primary-soft" : "hover:bg-app"
+                        }`}
+                      >
+                        <div className="relative shrink-0">
+                          {renderAvatar(conversation.user, "h-11 w-11")}
+
+                          <span
+                            className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-surface ${
+                              conversation.online ? "bg-primary" : "bg-muted/40"
+                            }`}
+                          />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex min-w-0 items-center justify-between gap-2">
+                            <p
+                              className={`truncate text-xs font-semibold ${
+                                isActive ? "text-primary" : "text-text"
+                              }`}
+                            >
+                              {conversation.user.name || "User"}
+                            </p>
+
+                            <span className="shrink-0 text-[10px] text-muted">
+                              {formatListTime(conversation.lastMessageAt)}
+                            </span>
+                          </div>
+
+                          <div className="mt-1 flex min-w-0 items-center justify-between gap-2">
+                            <p className="truncate text-[11px] text-muted">
+                              {conversation.lastMessage ||
+                                "Start a conversation"}
+                            </p>
+
+                            {conversation.unread > 0 && (
+                              <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
+                                {conversation.unread}
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="mt-1 truncate text-[10px] text-muted">
+                            {conversation.online
+                              ? "Online"
+                              : formatLastSeen(conversation.user.lastSeen)}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            ) : (
-              <>
-                {/* Chat header */}
-                <header className={styles.windowHeader}>
-                  <button
-                    className={styles.backButton}
-                    onClick={handleBack}
-                    aria-label="Back"
+            </aside>
+
+            {/* Chat window */}
+            <section
+              className={`${
+                activeId ? "flex" : "hidden md:flex"
+              } min-w-0 flex-1 flex-col bg-app`}
+            >
+              {!activeChat ? (
+                <div className="flex flex-1 flex-col items-center justify-center px-5 text-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-soft text-primary">
+                    <MessageCircle size={30} strokeWidth={1.5} />
+                  </div>
+
+                  <h2 className="mt-5 text-lg font-bold text-text">
+                    Your messages
+                  </h2>
+
+                  <p className="mt-2 max-w-xs text-xs leading-5 text-muted">
+                    Select a conversation to start chatting with your
+                    connections.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Chat header */}
+                  <header className="flex shrink-0 items-center gap-3 border-b border-border bg-surface px-3 py-3 sm:px-5">
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      aria-label="Back to conversations"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-app hover:text-text md:hidden"
+                    >
+                      <ArrowLeft size={19} />
+                    </button>
+
+                    <div className="relative shrink-0">
+                      {renderAvatar(activeChat.user, "h-10 w-10")}
+
+                      <span
+                        className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-surface ${
+                          activeChat.online ? "bg-primary" : "bg-muted/40"
+                        }`}
+                      />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <h2 className="truncate text-sm font-bold text-text">
+                        {activeChat.user.name || "User"}
+                      </h2>
+
+                      <p className="mt-0.5 truncate text-[11px] text-muted">
+                        {!socketConnected
+                          ? "Connecting..."
+                          : activeChat.online
+                            ? "Online"
+                            : formatLastSeen(activeChat.user.lastSeen)}
+                      </p>
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      {socketConnected ? (
+                        <Wifi size={16} className="text-primary" />
+                      ) : (
+                        <WifiOff size={16} className="text-danger" />
+                      )}
+
+                      <span className="hidden text-[10px] text-muted sm:inline">
+                        {socketConnected ? "Connected" : "Offline"}
+                      </span>
+                    </div>
+                  </header>
+
+                  {/* Messages */}
+                  <div
+                    className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-5 sm:py-5"
+                    ref={messagesContainerRef}
                   >
-                    ←
-                  </button>
+                    {/* Load older messages */}
+                    {hasMoreByConversation[activeId] && (
+                      <div className="mb-5 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={handleLoadOlderMessages}
+                          disabled={olderMessagesLoading}
+                          className="flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-[11px] font-medium text-muted transition hover:border-primary/40 hover:text-primary disabled:opacity-50"
+                        >
+                          {olderMessagesLoading ? (
+                            <>
+                              <LoaderCircle
+                                size={14}
+                                className="animate-spin"
+                              />
+                              Loading messages...
+                            </>
+                          ) : (
+                            "↑ Load older messages"
+                          )}
+                        </button>
+                      </div>
+                    )}
 
-                  <div className={styles.avatarWrap}>
-                    <img
-                      className={styles.avatar}
-                      src={
-                        activeChat.user.profilePicture || "/default-avatar.png"
-                      }
-                      alt={activeChat.user.name || "User"}
-                    />
+                    {messagesLoading && messages.length === 0 && (
+                      <div className="flex flex-col items-center gap-2 py-10">
+                        <LoaderCircle
+                          size={22}
+                          className="animate-spin text-primary"
+                        />
+                        <p className="text-xs text-muted">
+                          Loading messages...
+                        </p>
+                      </div>
+                    )}
 
-                    {activeChat.online && <span className={styles.onlineDot} />}
+                    {!messagesLoading && messages.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-soft text-primary">
+                          <MessageCircle size={22} />
+                        </div>
+
+                        <p className="mt-3 text-sm font-semibold text-text">
+                          No messages yet
+                        </p>
+
+                        <p className="mt-1 text-xs text-muted">
+                          Say hello and start the conversation.
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="space-y-3">
+                      {messages.map((message) => {
+                        const mine = getId(message.senderId) === currentUserId;
+
+                        return (
+                          <div
+                            key={message._id}
+                            className={`flex w-full ${
+                              mine ? "justify-end" : "justify-start"
+                            }`}
+                          >
+                            <div
+                              className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 shadow-sm sm:max-w-[72%] sm:px-4 ${
+                                mine
+                                  ? "rounded-br-md bg-primary text-white"
+                                  : "rounded-bl-md border border-border bg-surface text-text"
+                              }`}
+                            >
+                              <p className="whitespace-pre-wrap break-words text-[13px] leading-6">
+                                {message.text}
+                              </p>
+
+                              <div
+                                className={`mt-1.5 flex items-center justify-end gap-1.5 text-[9px] ${
+                                  mine ? "text-white/70" : "text-muted"
+                                }`}
+                              >
+                                <span>{formatTime(message.createdAt)}</span>
+
+                                {mine &&
+                                  (message.readAt ? (
+                                    <CheckCheck size={13} />
+                                  ) : (
+                                    <Check size={13} />
+                                  ))}
+
+                                {mine && message.readAt && <span>Read</span>}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div ref={bottomRef} />
                   </div>
 
-                  <div className={styles.headerInfo}>
-                    <p className={styles.headerName}>
-                      {activeChat.user.name || "User"}
-                    </p>
+                  {/* Message composer */}
+                  <footer className="shrink-0 border-t border-border bg-surface p-3 sm:px-5 sm:py-4">
+                    {sendError && (
+                      <div
+                        role="alert"
+                        className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-danger/20 bg-danger/5 px-3 py-2 text-[11px] text-danger"
+                      >
+                        <span>{sendError}</span>
 
-                    <p className={styles.headerStatus}>
-                      {!socketConnected
-                        ? "Connecting..."
-                        : activeChat.online
-                          ? "Online"
-                          : formatLastSeen(activeChat.user.lastSeen)}
-                    </p>
-                  </div>
-                </header>
+                        <button
+                          type="button"
+                          onClick={() => setSendError("")}
+                          aria-label="Dismiss error"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    )}
 
-                {/* Messages */}
-                <div className={styles.messages} ref={messagesContainerRef}>
-                  {hasMoreByConversation[activeId] && (
-                    <div className={styles.loadOlderWrapper}>
+                    <div className="flex items-end gap-2 rounded-xl border border-border bg-app p-2 transition focus-within:border-primary/40">
+                      <textarea
+                        ref={inputRef}
+                        rows={1}
+                        placeholder={
+                          socketConnected
+                            ? "Write a message..."
+                            : "Connecting to chat..."
+                        }
+                        value={text}
+                        maxLength={5000}
+                        onChange={(event) => setText(event.target.value)}
+                        onKeyDown={handleKeyDown}
+                        disabled={!socketConnected || sending}
+                        className="max-h-32 min-h-9 min-w-0 flex-1 resize-none bg-transparent px-2 py-2 text-xs leading-5 text-text outline-none placeholder:text-muted disabled:opacity-50 sm:text-sm"
+                      />
+
                       <button
                         type="button"
-                        className={styles.loadOlderButton}
-                        onClick={handleLoadOlderMessages}
-                        disabled={olderMessagesLoading}
+                        onClick={handleSend}
+                        disabled={!text.trim() || !socketConnected || sending}
+                        aria-label="Send message"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        {olderMessagesLoading ? (
-                          <>
-                            <span className={styles.loadingSpinner} />
-                            Loading messages...
-                          </>
+                        {sending ? (
+                          <LoaderCircle size={17} className="animate-spin" />
                         ) : (
-                          "↑ Load older messages"
+                          <Send size={16} />
                         )}
                       </button>
                     </div>
-                  )}
 
-                  {messagesLoading && messages.length === 0 && (
-                    <p className={styles.noMessages}>Loading messages...</p>
-                  )}
+                    <div className="mt-2 flex items-center justify-between px-1">
+                      <p className="text-[10px] text-muted">
+                        Enter to send · Shift + Enter for new line
+                      </p>
 
-                  {!messagesLoading && messages.length === 0 && (
-                    <p className={styles.noMessages}>
-                      No messages yet. Say hi 👋
-                    </p>
-                  )}
-
-                  {messages.map((message) => {
-                    const mine = getId(message.senderId) === currentUserId;
-
-                    return (
-                      <div
-                        key={message._id}
-                        className={`${styles.messageRow} ${
-                          mine ? styles.mine : styles.theirs
-                        }`}
-                      >
-                        <div className={styles.bubble}>
-                          <p className={styles.messageText}>{message.text}</p>
-
-                          <span className={styles.messageTime}>
-                            {formatTime(message.createdAt)}
-                            {mine && message.readAt ? " · Read" : ""}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  <div ref={bottomRef} />
-                </div>
-
-                {/* Message composer */}
-                <footer className={styles.composer}>
-                  <textarea
-                    ref={inputRef}
-                    rows={1}
-                    placeholder={
-                      socketConnected
-                        ? "Type a message..."
-                        : "Connecting to chat..."
-                    }
-                    value={text}
-                    maxLength={5000}
-                    onChange={(event) => setText(event.target.value)}
-                    onKeyDown={handleKeyDown}
-                    disabled={!socketConnected || sending}
-                  />
-
-                  <button
-                    className={styles.sendButton}
-                    onClick={handleSend}
-                    disabled={!text.trim() || !socketConnected || sending}
-                    aria-label="Send"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
-                      />
-                    </svg>
-                  </button>
-                </footer>
-
-                {sendError && (
-                  <p
-                    role="alert"
-                    style={{
-                      color: "#f87171",
-                      fontSize: 12,
-                      padding: "4px 16px",
-                    }}
-                  >
-                    {sendError}
-                  </p>
-                )}
-              </>
-            )}
+                      <p className="text-[10px] text-muted">
+                        {text.length}/5000
+                      </p>
+                    </div>
+                  </footer>
+                </>
+              )}
+            </section>
           </section>
         </div>
       </DashboardLayout>
@@ -889,7 +1031,13 @@ function ChatContent() {
 
 export default function Chat() {
   return (
-    <Suspense fallback={<div>Loading chat...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center bg-app">
+          <LoaderCircle size={26} className="animate-spin text-primary" />
+        </div>
+      }
+    >
       <ChatContent />
     </Suspense>
   );
