@@ -714,8 +714,6 @@ export default function Account() {
               </form>
             )}
 
-            {/* UNKNOWN ACCOUNT STATUS */}
-
             {hasPassword === false && isGoogleAccount !== true && (
               <Notice
                 type="error"
@@ -730,8 +728,6 @@ export default function Account() {
               </div>
             )}
           </section>
-
-          {/* SECURITY INFORMATION */}
 
           <section className={sectionClass}>
             <div className="flex items-start gap-3">
