@@ -64,11 +64,9 @@ function Login() {
   const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
   const [googleInitialized, setGoogleInitialized] = useState(false);
 
-  // Google references
   const googleButtonRef = useRef(null);
   const googleLoadingRef = useRef(false);
 
-  // Authenticated user redirect
   useEffect(() => {
     if (authState.laggedIn && authState.profileFetched) {
       router.replace("/dashboard");
@@ -79,7 +77,6 @@ function Login() {
     dispatch(emptyMessage());
   }, [userLoginMethod, dispatch]);
 
-  // OTP countdown
   useEffect(() => {
     if (resendCooldown <= 0) return;
 
@@ -106,7 +103,6 @@ function Login() {
     setNotice({ message: "", isError: false });
   };
 
-  // Signup validation
   const validateSignup = () => {
     const errors = {};
 
@@ -419,27 +415,21 @@ function Login() {
     }
   };
 
-  // Keep GIS callback pointed at the latest handler of the mounted component.
-  // Done in an effect (not during render) so it is SSR-safe (no `window` on server).
   useEffect(() => {
     window.__gisResponseHandler = handleGoogleResponse;
   });
 
-  // Clear the handler when this component unmounts so a stale component
-  // never receives a Google response.
   useEffect(() => {
     return () => {
       window.__gisResponseHandler = null;
     };
   }, []);
 
-  // Google Identity Services initialization - exactly once per page load.
   useEffect(() => {
     if (!googleScriptLoaded) return;
 
     if (!window.google?.accounts?.id) return;
 
-    // Already initialized (remount / HMR / Strict Mode) - just reuse it.
     if (window.__gisInitialized) {
       setGoogleInitialized(true);
       return;
@@ -455,13 +445,11 @@ function Login() {
       return;
     }
 
-    // Set the flag BEFORE initialize() so a second effect run cannot re-enter.
     window.__gisInitialized = true;
 
     window.google.accounts.id.initialize({
       client_id: clientId,
       callback: (response) => {
-        // Always call the latest handler, even after HMR / remount.
         window.__gisResponseHandler?.(response);
       },
       auto_select: false,
@@ -471,7 +459,6 @@ function Login() {
     setGoogleInitialized(true);
   }, [googleScriptLoaded]);
 
-  // Google button rendering - both login and signup
   useEffect(() => {
     if (
       !googleScriptLoaded ||
@@ -526,7 +513,6 @@ function Login() {
     showGoogleLinkOtpScreen,
   ]);
 
-  // Verify Google account linking OTP
   const handleGoogleLinkVerify = async (e) => {
     e.preventDefault();
 
@@ -590,7 +576,6 @@ function Login() {
     }
   };
 
-  // Switch between login and signup
   const handleSwitchMethod = () => {
     setUserLoginMethod((previous) => !previous);
 
