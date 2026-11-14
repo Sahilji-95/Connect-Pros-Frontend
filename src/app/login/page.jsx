@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import Script from "next/script";
 import UserLayOut from "@/layout/UserLayout/Index";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
@@ -8,6 +9,9 @@ import { Eye, EyeOff } from "lucide-react";
 
 import {
   loginUser,
+  googleLogin,
+  sendGoogleLinkOtp,
+  verifyGoogleLinkOtp,
   getAboutUser,
   sendEmailOtp,
   verifyEmailOtp,
@@ -16,9 +20,8 @@ import {
 
 import { emptyMessage } from "@/config/redux/reducer/authReducer";
 
-// Shared style tokens
 const inputClass =
-  "h-11 w-full rounded-control border border-border bg-app px-3.5 text-sm text-text outline-none transition placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/25 aria-invalid:border-danger aria-invalid:focus:ring-danger/25 disabled:cursor-not-allowed disabled:opacity-50";
+  "h-11 w-full rounded-control border border-border bg-app px-3.5 text-sm text-text outline-none transition placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-50";
 
 const primaryButtonClass =
   "flex h-11 w-full items-center justify-center rounded-control bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 dark:text-[#12141A]";
@@ -32,7 +35,9 @@ function Login() {
   const dispatch = useDispatch();
 
   const [userLoginMethod, setUserLoginMethod] = useState(false);
+
   const [showOtpScreen, setShowOtpScreen] = useState(false);
+  const [showGoogleLinkOtpScreen, setShowGoogleLinkOtpScreen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -41,9 +46,14 @@ function Login() {
     password: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState("");
+  const [googleLinkOtp, setGoogleLinkOtp] = useState("");
+
+  const [googleChallengeId, setGoogleChallengeId] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+
   const [notice, setNotice] = useState({
     message: "",
     isError: false,
@@ -51,20 +61,25 @@ function Login() {
 
   const [loadingAction, setLoadingAction] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
+  const [googleInitialized, setGoogleInitialized] = useState(false);
 
-  // Redirect after successful login and profile fetch
+  // Google references
+  const googleButtonRef = useRef(null);
+  const googleLoadingRef = useRef(false);
+
+  // Authenticated user redirect
   useEffect(() => {
     if (authState.laggedIn && authState.profileFetched) {
       router.replace("/dashboard");
     }
   }, [authState.laggedIn, authState.profileFetched, router]);
 
-  // Clear old Redux messages when switching login/signup
   useEffect(() => {
     dispatch(emptyMessage());
   }, [userLoginMethod, dispatch]);
 
-  // OTP resend countdown
+  // OTP countdown
   useEffect(() => {
     if (resendCooldown <= 0) return;
 
@@ -75,7 +90,6 @@ function Login() {
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
-  // Update form values and clear the changed field's error
   const handleOnChange = (e) => {
     const { name, value } = e.target;
 
@@ -92,7 +106,7 @@ function Login() {
     setNotice({ message: "", isError: false });
   };
 
-  // Custom signup validation
+  // Signup validation
   const validateSignup = () => {
     const errors = {};
 
@@ -118,12 +132,11 @@ function Login() {
     return Object.keys(errors).length === 0;
   };
 
-  // Step 1: Submit signup details and send OTP
+  // Normal signup - send OTP
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    if (loadingAction) return;
-    if (!validateSignup()) return;
+    if (loadingAction || !validateSignup()) return;
 
     setLoadingAction("send");
     setNotice({ message: "", isError: false });
@@ -165,7 +178,7 @@ function Login() {
     }
   };
 
-  // Step 2: Verify the email OTP
+  // Normal signup OTP verification
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
 
@@ -224,7 +237,7 @@ function Login() {
     }
   };
 
-  // Resend OTP
+  // Resend normal signup OTP
   const handleResendOtp = async () => {
     if (loadingAction || resendCooldown > 0) return;
 
@@ -249,9 +262,7 @@ function Login() {
       } else {
         const retryAfter = Number(result.payload?.retryAfter);
 
-        if (retryAfter > 0) {
-          setResendCooldown(retryAfter);
-        }
+        if (retryAfter > 0) setResendCooldown(retryAfter);
 
         setNotice({
           message: result.payload?.message || "Unable to resend OTP.",
@@ -268,7 +279,7 @@ function Login() {
     }
   };
 
-  // Existing login functionality
+  // Normal email/password login
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -307,8 +318,7 @@ function Login() {
         } else {
           setNotice({
             message:
-              profileResult.payload?.message ||
-              "Logged in, but unable to load your profile.",
+              profileResult.payload?.message || "Unable to load your profile.",
             isError: true,
           });
         }
@@ -328,10 +338,269 @@ function Login() {
     }
   };
 
+  // Google login callback
+  const handleGoogleResponse = async (response) => {
+    if (!response?.credential || googleLoadingRef.current) return;
+
+    googleLoadingRef.current = true;
+    setLoadingAction("google");
+    setNotice({ message: "", isError: false });
+
+    try {
+      const result = await dispatch(googleLogin(response.credential));
+
+      if (googleLogin.fulfilled.match(result)) {
+        const profileResult = await dispatch(getAboutUser());
+
+        if (getAboutUser.fulfilled.match(profileResult)) {
+          router.replace("/dashboard");
+        } else {
+          setNotice({
+            message:
+              profileResult.payload?.message || "Unable to load your profile.",
+            isError: true,
+          });
+        }
+
+        return;
+      }
+
+      // Existing account found - send linking OTP
+      if (result.payload?.code === "ACCOUNT_LINK_REQUIRED") {
+        const otpResult = await dispatch(
+          sendGoogleLinkOtp(response.credential),
+        );
+
+        if (sendGoogleLinkOtp.fulfilled.match(otpResult)) {
+          if (!otpResult.payload?.challengeId) {
+            setNotice({
+              message: "OTP challenge was not returned by the server.",
+              isError: true,
+            });
+            return;
+          }
+
+          setGoogleChallengeId(otpResult.payload.challengeId);
+          setGoogleLinkOtp("");
+          setShowGoogleLinkOtpScreen(true);
+
+          setNotice({
+            message:
+              otpResult.payload?.message ||
+              "Verification OTP sent to your registered email.",
+            isError: false,
+          });
+        } else {
+          setNotice({
+            message:
+              otpResult.payload?.message ||
+              "Unable to send account linking OTP.",
+            isError: true,
+          });
+        }
+
+        return;
+      }
+
+      setNotice({
+        message: result.payload?.message || "Google login failed.",
+        isError: true,
+      });
+    } catch (error) {
+      console.error("Google authentication error:", error);
+
+      setNotice({
+        message: "Google login failed. Please try again.",
+        isError: true,
+      });
+    } finally {
+      googleLoadingRef.current = false;
+      setLoadingAction("");
+    }
+  };
+
+  // Keep GIS callback pointed at the latest handler of the mounted component.
+  // Done in an effect (not during render) so it is SSR-safe (no `window` on server).
+  useEffect(() => {
+    window.__gisResponseHandler = handleGoogleResponse;
+  });
+
+  // Clear the handler when this component unmounts so a stale component
+  // never receives a Google response.
+  useEffect(() => {
+    return () => {
+      window.__gisResponseHandler = null;
+    };
+  }, []);
+
+  // Google Identity Services initialization - exactly once per page load.
+  useEffect(() => {
+    if (!googleScriptLoaded) return;
+
+    if (!window.google?.accounts?.id) return;
+
+    // Already initialized (remount / HMR / Strict Mode) - just reuse it.
+    if (window.__gisInitialized) {
+      setGoogleInitialized(true);
+      return;
+    }
+
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+    if (!clientId) {
+      setNotice({
+        message: "Google Client ID is missing from frontend environment.",
+        isError: true,
+      });
+      return;
+    }
+
+    // Set the flag BEFORE initialize() so a second effect run cannot re-enter.
+    window.__gisInitialized = true;
+
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: (response) => {
+        // Always call the latest handler, even after HMR / remount.
+        window.__gisResponseHandler?.(response);
+      },
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+
+    setGoogleInitialized(true);
+  }, [googleScriptLoaded]);
+
+  // Google button rendering - both login and signup
+  useEffect(() => {
+    if (
+      !googleScriptLoaded ||
+      !googleInitialized ||
+      showOtpScreen ||
+      showGoogleLinkOtpScreen ||
+      !window.google?.accounts?.id ||
+      !googleButtonRef.current
+    ) {
+      return;
+    }
+
+    const container = googleButtonRef.current;
+
+    const renderGoogleButton = () => {
+      if (!container.isConnected) return;
+
+      const width = Math.floor(Math.min(container.clientWidth, 400));
+
+      if (!width) return;
+
+      container.innerHTML = "";
+
+      window.google.accounts.id.renderButton(container, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "rectangular",
+        logo_alignment: "left",
+        width,
+      });
+    };
+
+    renderGoogleButton();
+
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(renderGoogleButton)
+        : null;
+
+    observer?.observe(container);
+
+    return () => {
+      observer?.disconnect();
+      container.innerHTML = "";
+    };
+  }, [
+    googleScriptLoaded,
+    googleInitialized,
+    showOtpScreen,
+    showGoogleLinkOtpScreen,
+  ]);
+
+  // Verify Google account linking OTP
+  const handleGoogleLinkVerify = async (e) => {
+    e.preventDefault();
+
+    if (loadingAction) return;
+
+    if (!googleChallengeId) {
+      setNotice({
+        message: "OTP session expired. Please start Google login again.",
+        isError: true,
+      });
+      return;
+    }
+
+    if (!/^\d{6}$/.test(googleLinkOtp)) {
+      setNotice({
+        message: "Please enter a valid 6-digit OTP.",
+        isError: true,
+      });
+      return;
+    }
+
+    setLoadingAction("google-verify");
+    setNotice({ message: "", isError: false });
+
+    try {
+      const result = await dispatch(
+        verifyGoogleLinkOtp({
+          challengeId: googleChallengeId,
+          otp: googleLinkOtp,
+        }),
+      );
+
+      if (verifyGoogleLinkOtp.fulfilled.match(result)) {
+        const profileResult = await dispatch(getAboutUser());
+
+        if (getAboutUser.fulfilled.match(profileResult)) {
+          router.replace("/dashboard");
+        } else {
+          setNotice({
+            message:
+              profileResult.payload?.message ||
+              "Account linked, but profile could not be loaded.",
+            isError: true,
+          });
+        }
+      } else {
+        setNotice({
+          message: result.payload?.message || "OTP verification failed.",
+          isError: true,
+        });
+      }
+    } catch (error) {
+      console.error("Google link verification error:", error);
+
+      setNotice({
+        message: "Unable to verify OTP. Please try again.",
+        isError: true,
+      });
+    } finally {
+      setLoadingAction("");
+    }
+  };
+
+  // Switch between login and signup
   const handleSwitchMethod = () => {
     setUserLoginMethod((previous) => !previous);
+
     setShowOtpScreen(false);
+    setShowGoogleLinkOtpScreen(false);
+
     setOtp("");
+    setGoogleLinkOtp("");
+    setGoogleChallengeId("");
+
     setResendCooldown(0);
     setFieldErrors({});
     setShowPassword(false);
@@ -352,9 +621,15 @@ function Login() {
     setNotice({ message: "", isError: false });
   };
 
+  const handleBackFromGoogleLink = () => {
+    setShowGoogleLinkOtpScreen(false);
+    setGoogleLinkOtp("");
+    setGoogleChallengeId("");
+    setNotice({ message: "", isError: false });
+  };
+
   const isLoading = Boolean(loadingAction);
 
-  // Reusable custom field error
   const FieldError = ({ error }) =>
     error ? (
       <p className="mt-1.5 text-xs text-danger" role="alert">
@@ -364,16 +639,34 @@ function Login() {
 
   return (
     <UserLayOut>
-      <div className="flex min-h-[calc(100vh-76px)] items-center justify-center bg-app px-4 py-10 text-text sm:px-6">
+      <Script
+        src="https://accounts.google.com/gsi/client"
+        strategy="afterInteractive"
+        onReady={() => {
+          if (window.google?.accounts?.id) {
+            setGoogleScriptLoaded(true);
+          }
+        }}
+        onError={() =>
+          setNotice({
+            message: "Google Sign-In could not be loaded. Please try again.",
+            isError: true,
+          })
+        }
+      />
+
+      <div className="flex min-h-[calc(100dvh-76px)] items-center justify-center bg-app px-3 py-6 text-text sm:px-6 sm:py-10">
         <div className="grid w-full max-w-[920px] overflow-hidden rounded-panel border border-border bg-surface shadow-md lg:grid-cols-[1.25fr_1fr]">
           {/* Form side */}
-          <div className="p-6 sm:p-10">
-            <h1 className="font-serif text-3xl font-bold tracking-tight text-text">
-              {showOtpScreen
-                ? "Verify your email"
-                : userLoginMethod
-                  ? "Sign in"
-                  : "Sign up"}
+          <div className="min-w-0 p-5 sm:p-8 md:p-10">
+            <h1 className="break-words font-serif text-2xl font-bold tracking-tight text-text sm:text-3xl">
+              {showGoogleLinkOtpScreen
+                ? "Link Google Account"
+                : showOtpScreen
+                  ? "Verify your email"
+                  : userLoginMethod
+                    ? "Sign in"
+                    : "Sign up"}
             </h1>
 
             {notice.message && (
@@ -390,8 +683,73 @@ function Login() {
               </p>
             )}
 
-            {/* Email OTP verification screen */}
-            {showOtpScreen ? (
+            {/* GOOGLE ACCOUNT LINK OTP */}
+            {showGoogleLinkOtpScreen ? (
+              <form
+                className="mt-6 flex flex-col gap-4"
+                onSubmit={handleGoogleLinkVerify}
+                noValidate
+              >
+                <div>
+                  <h2 className="text-base font-semibold text-text">
+                    Verify account ownership
+                  </h2>
+
+                  <p className="mt-2 text-sm leading-6 text-muted">
+                    This email already has a Connect Pros account. Enter the
+                    6-digit verification code sent to your registered email
+                    address to securely link your Google account.
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="googleLinkOtp"
+                    className="mb-1.5 block text-xs font-semibold text-text"
+                  >
+                    Verification code
+                  </label>
+
+                  <input
+                    id="googleLinkOtp"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    placeholder="Enter 6-digit OTP"
+                    value={googleLinkOtp}
+                    onChange={(e) => {
+                      setGoogleLinkOtp(
+                        e.target.value.replace(/\D/g, "").slice(0, 6),
+                      );
+                      setNotice({ message: "", isError: false });
+                    }}
+                    className={`${inputClass} text-center text-lg font-semibold tracking-[0.5em] placeholder:text-sm placeholder:font-normal placeholder:tracking-normal`}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className={primaryButtonClass}
+                  disabled={isLoading || googleLinkOtp.length !== 6}
+                >
+                  {loadingAction === "google-verify"
+                    ? "Verifying..."
+                    : "Verify & Link Account"}
+                </button>
+
+                <button
+                  type="button"
+                  className="self-start text-xs font-medium text-muted transition hover:text-text"
+                  onClick={handleBackFromGoogleLink}
+                  disabled={isLoading}
+                >
+                  ← Back to login
+                </button>
+              </form>
+            ) : showOtpScreen ? (
+              /* NORMAL SIGNUP OTP */
               <form
                 className="mt-6 flex flex-col gap-4"
                 onSubmit={handleVerifyOtp}
@@ -428,17 +786,11 @@ function Login() {
                       setOtp(e.target.value.replace(/\D/g, "").slice(0, 6));
                       setNotice({ message: "", isError: false });
                     }}
-                    aria-invalid={Boolean(notice.isError && otp.length !== 6)}
-                    aria-describedby="otp-error"
                     disabled={isLoading}
                   />
 
                   {notice.isError && (
-                    <p
-                      id="otp-error"
-                      className="mt-1.5 text-xs text-danger"
-                      role="alert"
-                    >
+                    <p className="mt-1.5 text-xs text-danger" role="alert">
                       {notice.message}
                     </p>
                   )}
@@ -449,11 +801,7 @@ function Login() {
                   className={primaryButtonClass}
                   disabled={isLoading || otp.length !== 6}
                 >
-                  <span>
-                    {loadingAction === "verify"
-                      ? "Verifying..."
-                      : "Verify Email"}
-                  </span>
+                  {loadingAction === "verify" ? "Verifying..." : "Verify Email"}
                 </button>
 
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
@@ -475,7 +823,7 @@ function Login() {
 
                 <button
                   type="button"
-                  className="self-start text-xs font-medium text-muted transition hover:text-text disabled:cursor-not-allowed disabled:opacity-50"
+                  className="self-start text-xs font-medium text-muted transition hover:text-text"
                   onClick={handleBackToSignup}
                   disabled={isLoading}
                 >
@@ -483,124 +831,118 @@ function Login() {
                 </button>
               </form>
             ) : (
-              /* Signup and login form */
-              <form
-                className="mt-6 flex flex-col gap-4"
-                onSubmit={userLoginMethod ? handleLogin : handleRegister}
-                noValidate
-              >
-                {!userLoginMethod && (
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <input
-                        type="text"
-                        name="name"
-                        placeholder="Enter your name"
-                        className={inputClass}
-                        value={formData.name}
-                        onChange={handleOnChange}
-                        autoComplete="name"
-                        maxLength={60}
-                        aria-invalid={Boolean(fieldErrors.name)}
-                        aria-describedby="name-error"
-                        disabled={isLoading}
-                      />
-                      <FieldError error={fieldErrors.name} />
+              <>
+                {/* LOGIN / SIGNUP */}
+                <form
+                  className="mt-6 flex flex-col gap-4"
+                  onSubmit={userLoginMethod ? handleLogin : handleRegister}
+                  noValidate
+                >
+                  {!userLoginMethod && (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <input
+                          type="text"
+                          name="name"
+                          placeholder="Enter your name"
+                          className={inputClass}
+                          value={formData.name}
+                          onChange={handleOnChange}
+                          autoComplete="name"
+                          maxLength={60}
+                          disabled={isLoading}
+                        />
+                        <FieldError error={fieldErrors.name} />
+                      </div>
+
+                      <div>
+                        <input
+                          type="text"
+                          name="username"
+                          placeholder="Enter your username"
+                          className={inputClass}
+                          value={formData.username}
+                          onChange={handleOnChange}
+                          autoComplete="username"
+                          maxLength={20}
+                          disabled={isLoading}
+                        />
+                        <FieldError error={fieldErrors.username} />
+                      </div>
                     </div>
+                  )}
 
-                    <div>
-                      <input
-                        type="text"
-                        name="username"
-                        placeholder="Enter your username"
-                        className={inputClass}
-                        value={formData.username}
-                        onChange={handleOnChange}
-                        autoComplete="username"
-                        maxLength={20}
-                        aria-invalid={Boolean(fieldErrors.username)}
-                        aria-describedby="username-error"
-                        disabled={isLoading}
-                      />
-                      <FieldError error={fieldErrors.username} />
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <input
-                    type="text"
-                    name="email"
-                    placeholder="Enter your email"
-                    className={inputClass}
-                    value={formData.email}
-                    onChange={handleOnChange}
-                    autoComplete="email"
-                    aria-invalid={Boolean(fieldErrors.email)}
-                    aria-describedby="email-error"
-                    disabled={isLoading}
-                  />
-                  <FieldError error={fieldErrors.email} />
-                </div>
-
-                <div>
-                  <div className="relative">
+                  <div>
                     <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      placeholder={
-                        userLoginMethod
-                          ? "Enter your password"
-                          : "Create a password (min. 8 characters)"
-                      }
-                      className={`${inputClass} pr-11`}
-                      value={formData.password}
+                      type="text"
+                      name="email"
+                      placeholder="Enter your email"
+                      className={inputClass}
+                      value={formData.email}
                       onChange={handleOnChange}
-                      autoComplete={
-                        userLoginMethod ? "current-password" : "new-password"
-                      }
-                      maxLength={72}
-                      aria-invalid={Boolean(fieldErrors.password)}
-                      aria-describedby="password-error"
+                      autoComplete="email"
                       disabled={isLoading}
                     />
-
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((previous) => !previous)}
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
-                      aria-pressed={showPassword}
-                      disabled={isLoading}
-                      className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition hover:bg-surface-muted hover:text-text disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                    </button>
+                    <FieldError error={fieldErrors.email} />
                   </div>
 
-                  <FieldError error={fieldErrors.password} />
-                </div>
+                  <div>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        placeholder={
+                          userLoginMethod
+                            ? "Enter your password"
+                            : "Create a password (min. 8 characters)"
+                        }
+                        className={`${inputClass} pr-11`}
+                        value={formData.password}
+                        onChange={handleOnChange}
+                        autoComplete={
+                          userLoginMethod ? "current-password" : "new-password"
+                        }
+                        maxLength={72}
+                        disabled={isLoading}
+                      />
 
-                {/* Added: Forgot Password link; visible only in Sign In mode */}
-                {userLoginMethod && (
-                  <div className="-mt-1 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => router.push("/forget-password")}
-                      className={linkButtonClass}
-                    >
-                      Forgot Password?
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((previous) => !previous)}
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                        disabled={isLoading}
+                        className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition hover:bg-surface-muted hover:text-text"
+                      >
+                        {showPassword ? (
+                          <EyeOff size={17} />
+                        ) : (
+                          <Eye size={17} />
+                        )}
+                      </button>
+                    </div>
+
+                    <FieldError error={fieldErrors.password} />
                   </div>
-                )}
 
-                <button
-                  type="submit"
-                  className={primaryButtonClass}
-                  disabled={isLoading}
-                >
-                  <span>
+                  {userLoginMethod && (
+                    <div className="-mt-1 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => router.push("/forget-password")}
+                        className={linkButtonClass}
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    className={primaryButtonClass}
+                    disabled={isLoading}
+                  >
                     {loadingAction === "send"
                       ? "Sending OTP..."
                       : loadingAction === "login"
@@ -608,31 +950,67 @@ function Login() {
                         : userLoginMethod
                           ? "Sign In"
                           : "Sign Up & Verify Email"}
-                  </span>
-                </button>
-              </form>
+                  </button>
+                </form>
+
+                {/* GOOGLE BUTTON - BOTH SIGNUP AND LOGIN */}
+                <div className="mt-5 w-full">
+                  <div className="relative mb-5 flex items-center">
+                    <div className="h-px flex-1 bg-border" />
+
+                    <span className="px-3 text-xs font-medium text-muted">
+                      OR CONTINUE WITH
+                    </span>
+
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+
+                  <div
+                    ref={googleButtonRef}
+                    className={`flex min-h-11 w-full justify-center overflow-hidden ${
+                      isLoading ? "pointer-events-none opacity-60" : ""
+                    }`}
+                  />
+
+                  {!googleScriptLoaded && (
+                    <p className="mt-2 text-center text-xs text-muted">
+                      Loading Google Sign-In...
+                    </p>
+                  )}
+
+                  {loadingAction === "google" && (
+                    <p className="mt-2 text-center text-xs text-muted">
+                      Signing in with Google...
+                    </p>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
-          {/* Switch side */}
-          <div className="flex items-center justify-center border-t border-border bg-primary p-8 text-center text-white dark:text-[#12141A] lg:border-l lg:border-t-0 lg:p-10">
+          {/* SWITCH SIDE */}
+          <div className="flex items-center justify-center border-t border-border bg-primary p-6 text-center text-white dark:text-[#12141A] sm:p-8 lg:border-l lg:border-t-0 lg:p-10">
             <div className="flex max-w-[240px] flex-col items-center gap-5">
               <p className="font-serif text-xl font-bold leading-snug">
-                {showOtpScreen
-                  ? "Check your inbox for the code"
-                  : userLoginMethod
-                    ? "Don't have an Account?"
-                    : "Already have an Account?"}
+                {showGoogleLinkOtpScreen
+                  ? "One more step to secure your account"
+                  : showOtpScreen
+                    ? "Check your inbox for the code"
+                    : userLoginMethod
+                      ? "Don't have an Account?"
+                      : "Already have an Account?"}
               </p>
 
-              <button
-                type="button"
-                onClick={handleSwitchMethod}
-                disabled={isLoading}
-                className="flex h-11 w-full items-center justify-center rounded-control border border-current/60 px-5 text-sm font-semibold transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-black/10"
-              >
-                <span>{userLoginMethod ? "Sign Up" : "Sign In"}</span>
-              </button>
+              {!showOtpScreen && !showGoogleLinkOtpScreen && (
+                <button
+                  type="button"
+                  onClick={handleSwitchMethod}
+                  disabled={isLoading}
+                  className="flex h-11 w-full items-center justify-center rounded-control border border-current/60 px-5 text-sm font-semibold transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-black/10"
+                >
+                  {userLoginMethod ? "Sign Up" : "Sign In"}
+                </button>
+              )}
             </div>
           </div>
         </div>

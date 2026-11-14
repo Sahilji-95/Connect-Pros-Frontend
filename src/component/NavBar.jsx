@@ -246,6 +246,14 @@ export default function NavBar() {
 
                     <button
                       type="button"
+                      onClick={() => handleNavigation("/account")}
+                      className="mt-2 w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-text transition-colors hover:bg-surface-muted"
+                    >
+                      Account Settings
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={handleLogout}
                       disabled={authState.loading}
                       className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-danger transition-colors hover:bg-surface-muted disabled:opacity-50"

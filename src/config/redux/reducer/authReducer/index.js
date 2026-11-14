@@ -20,6 +20,11 @@ import {
   resendResetOTP,
   resetPassword,
   searchUsers,
+  googleLogin,
+  changePassword,
+  setGoogleAccountPassword,
+  sendEmailChangeOtp,
+  verifyEmailChangeOtp,
 } from "../../action/authAction";
 
 const initialState = {
@@ -69,6 +74,21 @@ const initialState = {
   searchHasMore: false,
   searchNextCursor: null,
   searchError: null,
+  googleLoginLoading: false,
+  googleLoginError: null,
+  changePasswordLoading: false,
+  changePasswordError: null,
+  changePasswordMessage: "",
+  setGooglePasswordLoading: false,
+  setGooglePasswordError: null,
+  setGooglePasswordMessage: "",
+  sendEmailOtpLoading: false,
+  sendEmailOtpError: null,
+  sendEmailOtpMessage: "",
+  verifyEmailOtpLoading: false,
+  verifyEmailOtpError: null,
+  verifyEmailOtpMessage: "",
+  verifyEmailOtpAttemptsRemaining: null,
 };
 
 const authSlice = createSlice({
@@ -139,6 +159,80 @@ const authSlice = createSlice({
         };
       })
 
+      .addCase(googleLogin.pending, (state) => {
+        state.googleLoginLoading = true;
+        state.googleLoginError = null;
+        state.isError = false;
+      })
+
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.googleLoginLoading = false;
+        state.isError = false;
+        state.isSucces = true;
+        state.laggedIn = true;
+        state.isTokenThere = true;
+        state.token = null;
+        state.message = {
+          message: action.payload?.message || "Google login successful",
+        };
+      })
+
+      .addCase(googleLogin.rejected, (state, action) => {
+        state.googleLoginLoading = false;
+        state.googleLoginError = action.payload || {
+          message: "Google login failed",
+        };
+      })
+
+      .addCase(changePassword.pending, (state) => {
+        state.changePasswordLoading = true;
+        state.changePasswordError = null;
+        state.changePasswordMessage = "";
+      })
+
+      .addCase(changePassword.fulfilled, (state, action) => {
+        state.changePasswordLoading = false;
+        state.changePasswordError = null;
+        state.changePasswordMessage =
+          action.payload?.message || "Password changed successfully.";
+
+        state.user = null;
+        state.token = null;
+        state.isTokenThere = false;
+        state.laggedIn = false;
+        state.profileFetched = false;
+      })
+
+      .addCase(changePassword.rejected, (state, action) => {
+        state.changePasswordLoading = false;
+        state.changePasswordError = action.payload || {
+          message: "Unable to change password.",
+        };
+      })
+
+      .addCase(setGoogleAccountPassword.pending, (state) => {
+        state.setGooglePasswordLoading = true;
+        state.setGooglePasswordError = null;
+        state.setGooglePasswordMessage = "";
+      })
+
+      .addCase(setGoogleAccountPassword.fulfilled, (state, action) => {
+        state.setGooglePasswordLoading = false;
+        state.setGooglePasswordError = null;
+        state.setGooglePasswordMessage =
+          action.payload?.message || "Password set successfully.";
+
+        if (state.user?.userId) {
+          state.user.userId.hasPassword = true;
+        }
+      })
+
+      .addCase(setGoogleAccountPassword.rejected, (state, action) => {
+        state.setGooglePasswordLoading = false;
+        state.setGooglePasswordError = action.payload || {
+          message: "Unable to set password.",
+        };
+      })
       .addCase(logoutUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -401,12 +495,9 @@ const authSlice = createSlice({
 
       .addCase(searchUsers.fulfilled, (state, action) => {
         const { q, append, users, hasMore, nextCursor } = action.payload;
-
-        // Ignore responses belonging to an older query.
         if (q.trim().toLowerCase() !== state.searchQuery) {
           return;
         }
-
         state.searchLoading = false;
         state.searchMoreLoading = false;
         state.searchError = null;
@@ -438,10 +529,48 @@ const authSlice = createSlice({
         state.searchMoreLoading = false;
         state.searchError = action.payload || "Unable to search users.";
 
-        // Keep previously loaded results if loading another batch fails.
         if (!append) {
           state.searchHasMore = false;
         }
+      })
+      // Send Email OTP
+      .addCase(sendEmailChangeOtp.pending, (state) => {
+        state.sendEmailOtpLoading = true;
+        state.sendEmailOtpError = null;
+        state.sendEmailOtpMessage = "";
+      })
+      .addCase(sendEmailChangeOtp.fulfilled, (state, action) => {
+        state.sendEmailOtpLoading = false;
+        state.sendEmailOtpMessage =
+          action.payload?.message || "OTP sent successfully";
+      })
+      .addCase(sendEmailChangeOtp.rejected, (state, action) => {
+        state.sendEmailOtpLoading = false;
+        state.sendEmailOtpError =
+          action.payload?.message || "Unable to send OTP";
+      })
+
+      .addCase(verifyEmailChangeOtp.pending, (state) => {
+        state.verifyEmailOtpLoading = true;
+        state.verifyEmailOtpError = null;
+        state.verifyEmailOtpMessage = "";
+      })
+
+      .addCase(verifyEmailChangeOtp.fulfilled, (state, action) => {
+        state.verifyEmailOtpLoading = false;
+        state.verifyEmailOtpError = null;
+        state.verifyEmailOtpMessage =
+          action.payload?.message || "Email updated successfully";
+        state.verifyEmailOtpAttemptsRemaining = null;
+      })
+      .addCase(verifyEmailChangeOtp.rejected, (state, action) => {
+        state.verifyEmailOtpLoading = false;
+
+        state.verifyEmailOtpError =
+          action.payload?.message || "OTP verification failed";
+
+        state.verifyEmailOtpAttemptsRemaining =
+          action.payload?.attemptsRemaining ?? null;
       });
   },
 });

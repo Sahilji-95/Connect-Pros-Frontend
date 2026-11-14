@@ -7,31 +7,31 @@ import { LoaderCircle, Plus, Trash2 } from "lucide-react";
 
 import {
   getAboutUser,
-  updateUserProfile,
   updateProfileData,
 } from "@/config/redux/action/authAction";
 
-// Shared style tokens
-const sectionCard = "rounded-card border border-border bg-surface p-5 sm:p-6";
+// Shared responsive styles
+const sectionCard =
+  "min-w-0 rounded-card border border-border bg-surface p-4 sm:p-5 lg:p-6";
 
-const sectionTitle = "font-serif text-xl font-bold text-text";
+const sectionTitle = "font-serif text-lg font-bold text-text sm:text-xl";
 
-const labelClass = "mb-1.5 block text-xs font-semibold text-text";
+const labelClass = "mb-1.5 block text-xs font-semibold text-text sm:text-sm";
 
 const inputClass =
-  "h-11 w-full rounded-control border border-border bg-app px-3.5 text-sm text-text outline-none transition placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-50";
+  "h-11 min-w-0 w-full rounded-control border border-border bg-app px-3 text-sm text-text outline-none transition placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3.5";
 
 const textareaClass =
-  "w-full resize-y rounded-control border border-border bg-app px-3.5 py-3 text-sm leading-6 text-text outline-none transition placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-50";
+  "min-h-[110px] min-w-0 w-full resize-y rounded-control border border-border bg-app px-3 py-3 text-sm leading-6 text-text outline-none transition placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3.5";
 
 const outlineButton =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-control border border-border bg-surface px-4 text-sm font-semibold text-text transition hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex min-h-10 items-center justify-center gap-2 rounded-control border border-border bg-surface px-3 py-2 text-xs font-semibold text-text transition hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:text-sm";
 
 const primaryButton =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-control bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 dark:text-[#12141A]";
+  "inline-flex min-h-10 items-center justify-center gap-2 rounded-control bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 dark:text-[#12141A] sm:px-5";
 
 const removeButton =
-  "inline-flex h-8 items-center gap-1.5 rounded-lg border border-danger/30 bg-surface px-3 text-xs font-semibold text-danger transition hover:bg-danger/5 disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex min-h-8 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-danger/30 bg-surface px-2.5 py-1.5 text-xs font-semibold text-danger transition hover:bg-danger/5 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3";
 
 const emptyEducation = () => ({
   school: "",
@@ -55,8 +55,6 @@ export default function EditProfile() {
 
   const [form, setForm] = useState({
     name: "",
-    username: "",
-    email: "",
     bio: "",
     currentPost: "",
     education: [],
@@ -77,8 +75,6 @@ export default function EditProfile() {
 
     setForm({
       name: user.name || "",
-      username: user.username || "",
-      email: user.email || "",
       bio: profile.bio || "",
       currentPost: profile.currentPost || "",
 
@@ -153,16 +149,7 @@ export default function EditProfile() {
     setError("");
 
     try {
-      // 1. Update User document
-      await dispatch(
-        updateUserProfile({
-          name: form.name.trim(),
-          username: form.username.trim(),
-          email: form.email.trim(),
-        }),
-      ).unwrap();
-
-      // 2. Update Profile document
+      // Update Profile document only.
       await dispatch(
         updateProfileData({
           bio: form.bio,
@@ -174,7 +161,7 @@ export default function EditProfile() {
         }),
       ).unwrap();
 
-      // 3. Fetch updated profile into Redux
+      // Fetch updated profile into Redux.
       await dispatch(getAboutUser()).unwrap();
 
       router.push("/profile");
@@ -188,8 +175,8 @@ export default function EditProfile() {
 
   if (!profile || !user) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-app px-4 text-text">
-        <div className="flex flex-col items-center gap-4 text-center">
+      <main className="flex min-h-screen items-center justify-center bg-app px-3 text-text sm:px-4">
+        <div className="flex w-full max-w-sm flex-col items-center gap-4 text-center">
           {authState.isLoading && (
             <LoaderCircle size={24} className="animate-spin text-primary" />
           )}
@@ -213,22 +200,23 @@ export default function EditProfile() {
   }
 
   return (
-    <main className="min-h-screen bg-app text-text">
-      <div className="mx-auto w-full max-w-[920px] px-4 py-8 sm:px-6 sm:py-12">
-        <header className="mb-6 flex items-center justify-between gap-4">
-          <div>
-            <h1 className="font-serif text-2xl font-bold tracking-tight text-text sm:text-3xl">
+    <main className="min-h-screen w-full overflow-x-hidden bg-app text-text">
+      <div className="mx-auto w-full max-w-[1100px] px-3 py-6 min-[375px]:px-4 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+        {/* Header */}
+        <header className="mb-6 flex flex-col gap-4 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between sm:mb-8">
+          <div className="min-w-0">
+            <h1 className="font-serif text-2xl font-bold tracking-tight text-text sm:text-3xl lg:text-4xl">
               Edit Profile
             </h1>
 
-            <p className="mt-1 text-sm text-muted">
+            <p className="mt-1.5 max-w-xl text-xs leading-5 text-muted sm:text-sm">
               Update your personal and professional information.
             </p>
           </div>
 
           <button
             type="button"
-            className={`${outlineButton} shrink-0`}
+            className={`${outlineButton} w-full min-[480px]:w-auto min-[480px]:shrink-0`}
             onClick={() => router.push("/profile")}
             disabled={loading}
           >
@@ -236,16 +224,20 @@ export default function EditProfile() {
           </button>
         </header>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form
+          onSubmit={handleSubmit}
+          className="flex min-w-0 flex-col gap-4 sm:gap-5"
+        >
           {/* Personal information */}
           <section className={sectionCard}>
             <h2 className={sectionTitle}>Personal Information</h2>
 
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <div>
+            <div className="mt-5 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+              <div className="min-w-0">
                 <label htmlFor="name" className={labelClass}>
                   Full Name
                 </label>
+
                 <input
                   id="name"
                   name="name"
@@ -256,39 +248,11 @@ export default function EditProfile() {
                 />
               </div>
 
-              <div>
-                <label htmlFor="username" className={labelClass}>
-                  Username
-                </label>
-                <input
-                  id="username"
-                  name="username"
-                  value={form.username}
-                  onChange={handleChange}
-                  className={inputClass}
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className={labelClass}>
-                  Email Address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  className={inputClass}
-                  required
-                />
-              </div>
-
-              <div>
+              <div className="min-w-0">
                 <label htmlFor="currentPost" className={labelClass}>
                   Current Position
                 </label>
+
                 <input
                   id="currentPost"
                   name="currentPost"
@@ -299,10 +263,11 @@ export default function EditProfile() {
                 />
               </div>
 
-              <div className="sm:col-span-2">
+              <div className="min-w-0 sm:col-span-2">
                 <label htmlFor="bio" className={labelClass}>
                   Bio
                 </label>
+
                 <textarea
                   id="bio"
                   name="bio"
@@ -318,12 +283,12 @@ export default function EditProfile() {
 
           {/* Education */}
           <section className={sectionCard}>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
               <h2 className={sectionTitle}>Education</h2>
 
               <button
                 type="button"
-                className={outlineButton}
+                className={`${outlineButton} w-full min-[420px]:w-auto`}
                 onClick={addEducation}
                 disabled={loading}
               >
@@ -333,19 +298,19 @@ export default function EditProfile() {
             </div>
 
             {form.education.length === 0 && (
-              <p className="mt-4 text-sm text-muted">
+              <p className="mt-4 text-xs leading-5 text-muted sm:text-sm">
                 No education details added yet.
               </p>
             )}
 
-            <div className="mt-4 flex flex-col gap-4">
+            <div className="mt-4 flex min-w-0 flex-col gap-4">
               {form.education.map((item, index) => (
                 <div
-                  className="rounded-control border border-border bg-app p-4"
+                  className="min-w-0 rounded-control border border-border bg-app p-3 sm:p-4"
                   key={item._id || `education-${index}`}
                 >
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <h3 className="text-sm font-semibold text-text">
+                  <div className="mb-4 flex items-center justify-between gap-2">
+                    <h3 className="text-sm font-semibold text-text sm:text-base">
                       Education {index + 1}
                     </h3>
 
@@ -360,11 +325,12 @@ export default function EditProfile() {
                     </button>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
+                  <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="min-w-0">
                       <label htmlFor={`school-${index}`} className={labelClass}>
                         School / College
                       </label>
+
                       <input
                         id={`school-${index}`}
                         value={item.school}
@@ -381,10 +347,11 @@ export default function EditProfile() {
                       />
                     </div>
 
-                    <div>
+                    <div className="min-w-0">
                       <label htmlFor={`degree-${index}`} className={labelClass}>
                         Degree
                       </label>
+
                       <input
                         id={`degree-${index}`}
                         value={item.degree}
@@ -401,13 +368,14 @@ export default function EditProfile() {
                       />
                     </div>
 
-                    <div className="sm:col-span-2">
+                    <div className="min-w-0 sm:col-span-2">
                       <label
                         htmlFor={`fieldOfStudy-${index}`}
                         className={labelClass}
                       >
                         Field of Study
                       </label>
+
                       <input
                         id={`fieldOfStudy-${index}`}
                         value={item.fieldOfStudy}
@@ -431,12 +399,12 @@ export default function EditProfile() {
 
           {/* Past work */}
           <section className={sectionCard}>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
               <h2 className={sectionTitle}>Past Work</h2>
 
               <button
                 type="button"
-                className={outlineButton}
+                className={`${outlineButton} w-full min-[420px]:w-auto`}
                 onClick={addWork}
                 disabled={loading}
               >
@@ -446,19 +414,19 @@ export default function EditProfile() {
             </div>
 
             {form.pastWork.length === 0 && (
-              <p className="mt-4 text-sm text-muted">
+              <p className="mt-4 text-xs leading-5 text-muted sm:text-sm">
                 No work experience added yet.
               </p>
             )}
 
-            <div className="mt-4 flex flex-col gap-4">
+            <div className="mt-4 flex min-w-0 flex-col gap-4">
               {form.pastWork.map((item, index) => (
                 <div
-                  className="rounded-control border border-border bg-app p-4"
+                  className="min-w-0 rounded-control border border-border bg-app p-3 sm:p-4"
                   key={item._id || `work-${index}`}
                 >
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <h3 className="text-sm font-semibold text-text">
+                  <div className="mb-4 flex items-center justify-between gap-2">
+                    <h3 className="text-sm font-semibold text-text sm:text-base">
                       Experience {index + 1}
                     </h3>
 
@@ -473,14 +441,15 @@ export default function EditProfile() {
                     </button>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
+                  <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="min-w-0">
                       <label
                         htmlFor={`pastWork-${index}`}
                         className={labelClass}
                       >
                         Company / Organization
                       </label>
+
                       <input
                         id={`pastWork-${index}`}
                         value={item.pastWork}
@@ -497,13 +466,14 @@ export default function EditProfile() {
                       />
                     </div>
 
-                    <div>
+                    <div className="min-w-0">
                       <label
                         htmlFor={`position-${index}`}
                         className={labelClass}
                       >
                         Position
                       </label>
+
                       <input
                         id={`position-${index}`}
                         value={item.position}
@@ -520,10 +490,11 @@ export default function EditProfile() {
                       />
                     </div>
 
-                    <div className="sm:col-span-2">
+                    <div className="min-w-0 sm:col-span-2">
                       <label htmlFor={`years-${index}`} className={labelClass}>
                         Duration
                       </label>
+
                       <input
                         id={`years-${index}`}
                         value={item.years}
@@ -545,27 +516,34 @@ export default function EditProfile() {
             </div>
           </section>
 
+          {/* Error message */}
           {error && (
             <p
-              className="rounded-control border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-xs leading-5 text-danger"
+              className="break-words rounded-control border border-danger/30 bg-danger/5 px-3.5 py-3 text-xs leading-5 text-danger sm:text-sm"
               role="alert"
             >
               {error}
             </p>
           )}
 
-          <div className="flex items-center justify-end gap-3">
+          {/* Form actions */}
+          <div className="flex flex-col-reverse gap-3 pb-4 sm:flex-row sm:items-center sm:justify-end">
             <button
               type="button"
-              className={outlineButton}
+              className={`${outlineButton} w-full sm:w-auto`}
               onClick={() => router.push("/profile")}
               disabled={loading}
             >
               Cancel
             </button>
 
-            <button type="submit" className={primaryButton} disabled={loading}>
+            <button
+              type="submit"
+              className={`${primaryButton} w-full sm:w-auto`}
+              disabled={loading}
+            >
               {loading && <LoaderCircle size={15} className="animate-spin" />}
+
               {loading ? "Saving..." : "Save Changes"}
             </button>
           </div>

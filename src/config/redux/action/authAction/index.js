@@ -21,6 +21,67 @@ export const loginUser = createAsyncThunk(
   },
 );
 
+// GOOGLE LOGIN
+export const googleLogin = createAsyncThunk(
+  "user/googleLogin",
+  async (credential, thunkAPI) => {
+    try {
+      const response = await clientServer.post("/google-login", {
+        credential,
+      });
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Google login failed",
+        },
+      );
+    }
+  },
+);
+
+// SEND GOOGLE ACCOUNT LINK OTP
+export const sendGoogleLinkOtp = createAsyncThunk(
+  "user/sendGoogleLinkOtp",
+  async (credential, thunkAPI) => {
+    try {
+      const response = await clientServer.post("/google-link/send-otp", {
+        credential,
+      });
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to send Google linking OTP",
+        },
+      );
+    }
+  },
+);
+
+// VERIFY GOOGLE ACCOUNT LINK OTP
+export const verifyGoogleLinkOtp = createAsyncThunk(
+  "user/verifyGoogleLinkOtp",
+  async ({ challengeId, otp }, thunkAPI) => {
+    try {
+      const response = await clientServer.post("/google-link/verify-otp", {
+        challengeId,
+        otp,
+      });
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to verify Google linking OTP",
+        },
+      );
+    }
+  },
+);
+
 //LOGOUT
 export const logoutUser = createAsyncThunk(
   "user/logout",
@@ -443,6 +504,90 @@ export const searchUsers = createAsyncThunk(
       return rejectWithValue(
         error.response?.data?.message ||
           "Unable to search users. Please try again.",
+      );
+    }
+  },
+);
+
+/* CHANGE ACCOUNT PASSWORD */
+export const changePassword = createAsyncThunk(
+  "auth/changePassword",
+  async (
+    { currentPassword, newPassword, confirmPassword },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await clientServer.post("/account/change-password", {
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to change password.",
+        },
+      );
+    }
+  },
+);
+
+/* SET PASSWORD FOR GOOGLE ACCOUNT */
+export const setGoogleAccountPassword = createAsyncThunk(
+  "auth/setGoogleAccountPassword",
+  async ({ newPassword, confirmPassword }, { rejectWithValue }) => {
+    try {
+      const response = await clientServer.post("/google/set-password", {
+        newPassword,
+        confirmPassword,
+      });
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to set password.",
+        },
+      );
+    }
+  },
+);
+
+export const sendEmailChangeOtp = createAsyncThunk(
+  "auth/sendEmailChangeOtp",
+  async ({ email }, { rejectWithValue }) => {
+    try {
+      const response = await clientServer.post("/account/email/send-otp", {
+        email,
+      });
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to send OTP",
+        },
+      );
+    }
+  },
+);
+
+export const verifyEmailChangeOtp = createAsyncThunk(
+  "auth/verifyEmailChangeOtp",
+  async ({ otp }, { rejectWithValue }) => {
+    try {
+      const response = await clientServer.post("/account/email/verify-otp", {
+        otp,
+      });
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || {
+          message: error.message || "Unable to verify OTP",
+        },
       );
     }
   },
